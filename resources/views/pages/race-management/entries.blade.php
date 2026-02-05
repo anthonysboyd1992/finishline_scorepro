@@ -3,44 +3,51 @@ $sidebarItems = [
     [
         'key' => 'setup',
         'label' => 'Setup',
-        'href' => route('races.index'),
+        'href' => route('race-management.index'),
         'wire' => true,
         'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>',
     ],
     [
         'key' => 'entries',
         'label' => 'Entries',
-        'href' => route('races.entries'),
+        'href' => route('race-management.entries'),
         'wire' => true,
         'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>',
     ],
     [
         'key' => 'races',
         'label' => 'Races',
-        'href' => route('races.races'),
+        'href' => route('race-management.races'),
         'wire' => true,
         'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M4 4v16h2V4H4zm4 0v4h2v4h2V8h2v4h2V8h2v4h2V4H8zm0 8v4h2v-4H8zm4 0v4h2v-4h-2zm4 0v4h2v-4h-2zm-8 4v4h2v-4H8zm4 0v4h2v-4h-2zm4 0v4h2v-4h-2z"/></svg>',
     ],
     [
         'key' => 'race-order',
         'label' => 'Race Order',
-        'href' => route('races.race-order'),
+        'href' => route('race-management.race-order'),
         'wire' => true,
         'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>',
     ],
     [
         'key' => 'lineups',
         'label' => 'Lineups',
-        'href' => route('races.lineups'),
+        'href' => route('race-management.lineups'),
         'wire' => true,
         'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>',
     ],
     [
-        'key' => 'scoring',
-        'label' => 'Scoring',
-        'href' => route('races.scoring'),
+        'key' => 'results',
+        'label' => 'Results',
+        'href' => route('race-management.results'),
         'wire' => true,
-        'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>',
+        'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>',
+    ],
+    [
+        'key' => 'points-payout',
+        'label' => 'Points / Payout',
+        'href' => route('race-management.points-payout'),
+        'wire' => true,
+        'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>',
     ],
 ];
 
@@ -60,39 +67,42 @@ $classes = [
 ];
 $currentClass = null;
 
-// Example races data
-$races = [
-    ['id' => 1, 'name' => 'Stock Novice Q1', 'class' => 'Stock Novice', 'status' => 'completed', 'entries' => 8],
-    ['id' => 2, 'name' => 'Stock Novice Q2', 'class' => 'Stock Novice', 'status' => 'completed', 'entries' => 8],
-    ['id' => 3, 'name' => 'Stock Sportsman Q1', 'class' => 'Stock Sportsman', 'status' => 'running', 'entries' => 6],
-    ['id' => 4, 'name' => 'Stock Sportsman Q2', 'class' => 'Stock Sportsman', 'status' => 'upcoming', 'entries' => 6],
-    ['id' => 5, 'name' => 'Modified Q1', 'class' => 'Modified', 'status' => 'upcoming', 'entries' => 5],
-    ['id' => 6, 'name' => '17.5 Blinky Q1', 'class' => '17.5 Blinky', 'status' => 'upcoming', 'entries' => 4],
+// Example entries data
+$entries = [
+    ['id' => 1, 'number' => '01', 'driver' => 'Mike Johnson', 'class' => 'Stock Novice', 'transponder' => 'A01', 'car' => 'TLR 22 5.0'],
+    ['id' => 2, 'number' => '07', 'driver' => 'Sarah Williams', 'class' => 'Stock Novice', 'transponder' => 'A07', 'car' => 'Associated B6.4'],
+    ['id' => 3, 'number' => '12', 'driver' => 'Tom Davis', 'class' => 'Stock Sportsman', 'transponder' => 'A12', 'car' => 'Yokomo YZ-2'],
+    ['id' => 4, 'number' => '23', 'driver' => 'Chris Martinez', 'class' => 'Modified', 'transponder' => 'A23', 'car' => 'Schumacher CAT L1'],
+    ['id' => 5, 'number' => '44', 'driver' => 'Emily Brown', 'class' => '17.5 Blinky', 'transponder' => 'A44', 'car' => 'Xray XB4'],
+    ['id' => 6, 'number' => '55', 'driver' => 'David Wilson', 'class' => 'Open Modified', 'transponder' => 'A55', 'car' => 'Kyosho RB7'],
+    ['id' => 7, 'number' => '88', 'driver' => 'Jessica Lee', 'class' => 'Stock Novice', 'transponder' => 'A88', 'car' => 'Serpent SRX8'],
 ];
+$entryCount = count($entries);
 ?>
 
 <x-layouts::module 
-    title="Races"
-    moduleTitle="RACES"
+    title="Entries"
+    moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$sidebarItems"
-    currentItem="races"
+    currentItem="entries"
     :showContextBar="true"
     :events="$events"
     :currentEvent="$currentEvent"
     :classes="$classes"
     :currentClass="$currentClass"
+    :entryCount="$entryCount"
 >
-    <!-- List Panel - Race List -->
+    <!-- List Panel - Entry List -->
     <div class="w-full md:w-96 lg:w-[420px] flex flex-col bg-white dark:bg-zinc-800 border-r border-slate-200 dark:border-zinc-700 shrink-0">
         <!-- Header -->
         <div class="p-4 border-b border-slate-200 dark:border-zinc-700">
             <div class="flex items-center justify-between mb-3">
-                <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Races</h2>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Entries</h2>
                 <button class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                     </svg>
-                    New Race
+                    Add Entry
                 </button>
             </div>
             <!-- Search -->
@@ -102,43 +112,27 @@ $races = [
                 </svg>
                 <input 
                     type="text" 
-                    placeholder="Search races..."
+                    placeholder="Search by name, number, or transponder..."
                     class="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 text-sm focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
             </div>
         </div>
 
-        <!-- Race List -->
+        <!-- Entry List -->
         <div class="flex-1 overflow-y-auto">
-            @foreach($races as $race)
+            @foreach($entries as $entry)
                 <a href="#" class="flex items-center gap-3 px-4 py-3 border-b border-slate-100 dark:border-zinc-700/50 hover:bg-slate-50 dark:hover:bg-zinc-700/50 transition-colors">
-                    <!-- Status Indicator -->
-                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0
-                        @if($race['status'] === 'completed') bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400
-                        @elseif($race['status'] === 'running') bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400
-                        @else bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400 @endif">
-                        @if($race['status'] === 'completed')
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        @elseif($race['status'] === 'running')
-                            <svg class="w-5 h-5 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        @else
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        @endif
+                    <!-- Entry Number -->
+                    <div class="flex items-center justify-center w-10 h-10 bg-red-600 text-white font-bold text-lg rounded-lg shrink-0">
+                        {{ $entry['number'] }}
                     </div>
                     
-                    <!-- Race Info -->
+                    <!-- Entry Info -->
                     <div class="flex-1 min-w-0">
-                        <p class="font-medium text-slate-900 dark:text-white truncate">{{ $race['name'] }}</p>
+                        <p class="font-medium text-slate-900 dark:text-white truncate">{{ $entry['driver'] }}</p>
                         <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                            <span class="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded">{{ $race['class'] }}</span>
-                            <span>{{ $race['entries'] }} entries</span>
+                            <span class="px-1.5 py-0.5 bg-sky-100 dark:bg-sky-900/30 text-sky-700 dark:text-sky-400 rounded">{{ $entry['class'] }}</span>
+                            <span class="font-mono">{{ $entry['transponder'] }}</span>
                         </div>
                     </div>
 
@@ -153,15 +147,16 @@ $races = [
 
     <!-- Detail Panel -->
     <div class="flex-1 bg-slate-100 dark:bg-zinc-900 overflow-y-auto">
+        <!-- Empty State -->
         <div class="h-full flex flex-col items-center justify-center text-center p-8">
             <div class="w-16 h-16 bg-slate-200 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-4">
-                <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4 4v16h2V4H4zm4 0v4h2v4h2V8h2v4h2V8h2v4h2V4H8zm0 8v4h2v-4H8zm4 0v4h2v-4h-2zm4 0v4h2v-4h-2zm-8 4v4h2v-4H8zm4 0v4h2v-4h-2zm4 0v4h2v-4h-2z"/>
+                <svg class="w-8 h-8 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
             </div>
-            <p class="text-slate-600 dark:text-slate-400 mb-2">Select a race to view details</p>
+            <p class="text-slate-600 dark:text-slate-400 mb-2">Select an entry to view details</p>
             <p class="text-sm text-slate-500 dark:text-slate-500">
-                or <a href="#" class="text-red-600 dark:text-red-400 hover:underline">create a new race</a>
+                or <a href="#" class="text-red-600 dark:text-red-400 hover:underline">add a new entry</a>
             </p>
         </div>
     </div>

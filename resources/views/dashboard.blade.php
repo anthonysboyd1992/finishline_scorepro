@@ -22,7 +22,7 @@
             </a>
 
             <!-- Race Management -->
-            <a href="{{ route('races.index') }}" wire:navigate class="group relative bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-slate-200 dark:border-zinc-700 hover:border-red-300 dark:hover:border-red-600">
+            <a href="{{ route('race-management.index') }}" wire:navigate class="group relative bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-sm hover:shadow-lg transition-all duration-200 border border-slate-200 dark:border-zinc-700 hover:border-red-300 dark:hover:border-red-600">
                 <div class="flex flex-col items-center text-center">
                     <div class="w-16 h-16 md:w-20 md:h-20 bg-red-500 rounded-2xl flex items-center justify-center mb-4 group-hover:bg-red-600 transition-colors">
                         <svg class="w-8 h-8 md:w-10 md:h-10 text-white" viewBox="0 0 24 24" fill="currentColor">

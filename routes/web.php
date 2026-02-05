@@ -18,13 +18,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Race Management
-    Route::prefix('races')->name('races.')->group(function () {
-        Route::view('/', 'pages.races.index')->name('index');
-        Route::view('/entries', 'pages.races.entries')->name('entries');
-        Route::view('/races', 'pages.races.races')->name('races');
-        Route::view('/race-order', 'pages.races.race-order')->name('race-order');
-        Route::view('/lineups', 'pages.races.lineups')->name('lineups');
-        Route::view('/scoring', 'pages.races.scoring')->name('scoring');
+    Route::prefix('race-management')->name('race-management.')->group(function () {
+        Route::view('/', 'pages.race-management.index')->name('index');
+        Route::view('/entries', 'pages.race-management.entries')->name('entries');
+        Route::view('/races', 'pages.race-management.races')->name('races');
+        Route::view('/race-order', 'pages.race-management.race-order')->name('race-order');
+        Route::view('/lineups', 'pages.race-management.lineups')->name('lineups');
+        Route::view('/results', 'pages.race-management.results')->name('results');
+        Route::view('/points-payout', 'pages.race-management.points-payout')->name('points-payout');
     });
 
     // Transponder Management
