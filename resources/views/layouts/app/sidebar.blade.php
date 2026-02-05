@@ -10,11 +10,16 @@
     <header class="sticky top-0 z-50 bg-zinc-800 shadow-lg">
         <div class="flex h-14 items-center justify-between px-4 md:px-6">
             <!-- Logo & App Name -->
-            <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3">
-                <x-app-logo-icon class="h-8 w-8 text-white" />
-                <span class="text-lg font-semibold tracking-wide text-white hidden sm:inline">{{ config('app.name', 'FinishLine Pro') }}</span>
-            </a>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('dashboard') }}" wire:navigate class="flex items-center gap-3">
+                    <x-app-logo-icon class="h-8 w-8 text-white" />
+                    <span class="text-lg font-semibold tracking-wide text-white hidden sm:inline">{{ config('app.name', 'FinishLine Pro') }}</span>
+                </a>
 
+                <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
+
+                @include('partials.sanctions-dropdown')
+            </div>
 
             <!-- User Menu -->
             <div class="flex items-center gap-3">

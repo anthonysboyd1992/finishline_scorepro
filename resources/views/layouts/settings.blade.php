@@ -69,7 +69,11 @@ $currentItem = match(true) {
                 
                 <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
                 
-                <span class="text-lg font-semibold tracking-wide text-white">{{ config('app.name', 'FinishLine Pro') }}</span>
+                <span class="text-lg font-semibold tracking-wide text-white hidden sm:inline">{{ config('app.name', 'FinishLine Pro') }}</span>
+
+                <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
+
+                @include('partials.sanctions-dropdown')
             </div>
             
             <div class="flex items-center gap-3">
