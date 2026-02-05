@@ -20,6 +20,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Race Management
     Route::prefix('races')->name('races.')->group(function () {
         Route::view('/', 'pages.races.index')->name('index');
+        Route::view('/entries', 'pages.races.entries')->name('entries');
+        Route::view('/races', 'pages.races.races')->name('races');
+        Route::view('/race-order', 'pages.races.race-order')->name('race-order');
+        Route::view('/lineups', 'pages.races.lineups')->name('lineups');
+        Route::view('/scoring', 'pages.races.scoring')->name('scoring');
     });
 
     // Transponder Management
