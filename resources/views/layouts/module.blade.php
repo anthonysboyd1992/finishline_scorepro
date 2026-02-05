@@ -98,178 +98,142 @@
 
         @if($showContextBar)
         <!-- Context Selection Bar (Event & Class) -->
-        <div class="bg-slate-100 dark:bg-zinc-800 border-b border-slate-200 dark:border-zinc-700 px-4 py-3 shrink-0">
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-6">
-                <!-- Event Selector -->
-                <div 
-                    x-data="{ open: false }" 
-                    @keydown.escape.window="open = false"
-                    class="relative flex-1 sm:max-w-sm"
+        <div class="flex items-center gap-3 bg-zinc-700 px-4 py-2 shrink-0">
+            <!-- Event Selector -->
+            <div 
+                x-data="{ open: false }" 
+                @keydown.escape.window="open = false"
+                class="relative"
+            >
+                <button 
+                    @click="open = !open" 
+                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-w-[200px]"
                 >
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                        Event
-                    </label>
-                    <button 
-                        @click="open = !open" 
-                        class="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white dark:bg-zinc-700 border-2 border-emerald-500 hover:border-emerald-600 shadow-sm transition-all"
-                    >
-                        <div class="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div class="flex-1 min-w-0 text-left">
-                            <p class="text-base font-semibold text-slate-900 dark:text-white truncate">{{ $currentEvent['name'] ?? 'Select Event' }}</p>
-                            @if(isset($currentEvent['date']))
-                                <p class="text-sm text-slate-500 dark:text-slate-400">{{ $currentEvent['date'] }}</p>
-                            @endif
-                        </div>
-                        <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div 
-                        x-show="open" 
-                        @click.away="open = false"
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        x-cloak
-                        class="absolute left-0 right-0 mt-2 origin-top rounded-xl bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
-                    >
-                        <div class="p-2">
-                            @forelse($events as $event)
-                                <a 
-                                    href="{{ $event['href'] ?? '#' }}"
-                                    @if($event['wire'] ?? false) wire:navigate @endif
-                                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'hover:bg-slate-50 dark:hover:bg-zinc-700' }}"
-                                >
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-slate-900 dark:text-white truncate {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-emerald-700 dark:text-emerald-400' : '' }}">{{ $event['name'] ?? '' }}</p>
-                                        @if(isset($event['date']))
-                                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ $event['date'] }}</p>
-                                        @endif
-                                    </div>
-                                    @if(($currentEvent['id'] ?? null) === ($event['id'] ?? null))
-                                        <svg class="w-6 h-6 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    @endif
-                                </a>
-                            @empty
-                                <p class="px-4 py-3 text-sm text-slate-500 dark:text-slate-400">No events available</p>
-                            @endforelse
-                        </div>
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-sm font-semibold truncate">{{ $currentEvent['name'] ?? 'Select Event' }}</p>
                     </div>
-                </div>
+                    <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
 
-                <!-- Class Selector -->
                 <div 
-                    x-data="{ open: false }" 
-                    @keydown.escape.window="open = false"
-                    class="relative flex-1 sm:max-w-xs"
+                    x-show="open" 
+                    @click.away="open = false"
+                    x-transition
+                    x-cloak
+                    class="absolute left-0 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
                 >
-                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                        Class
-                    </label>
-                    <button 
-                        @click="open = !open" 
-                        class="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white dark:bg-zinc-700 border-2 border-sky-500 hover:border-sky-600 shadow-sm transition-all"
-                    >
-                        <div class="w-10 h-10 bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400 rounded-lg flex items-center justify-center shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                            </svg>
+                    <div class="p-2">
+                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Select Event
                         </div>
-                        <div class="flex-1 min-w-0 text-left">
-                            <p class="text-base font-semibold text-slate-900 dark:text-white truncate">{{ $currentClass['name'] ?? 'All Classes' }}</p>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">{{ is_null($currentClass) ? 'Showing all' : 'Filtered' }}</p>
-                        </div>
-                        <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
-                    </button>
-
-                    <div 
-                        x-show="open" 
-                        @click.away="open = false"
-                        x-transition:enter="transition ease-out duration-100"
-                        x-transition:enter-start="transform opacity-0 scale-95"
-                        x-transition:enter-end="transform opacity-100 scale-100"
-                        x-transition:leave="transition ease-in duration-75"
-                        x-transition:leave-start="transform opacity-100 scale-100"
-                        x-transition:leave-end="transform opacity-0 scale-95"
-                        x-cloak
-                        class="absolute left-0 right-0 mt-2 origin-top rounded-xl bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
-                    >
-                        <div class="p-2">
-                            <!-- All Classes option -->
+                        @forelse($events as $event)
                             <a 
-                                href="#"
-                                class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ is_null($currentClass) ? 'bg-sky-50 dark:bg-sky-900/20' : 'hover:bg-slate-50 dark:hover:bg-zinc-700' }}"
+                                href="{{ $event['href'] ?? '#' }}"
+                                @if($event['wire'] ?? false) wire:navigate @endif
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
                             >
-                                <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 {{ is_null($currentClass) ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : 'bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400' }}">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                                    </svg>
-                                </div>
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-emerald-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-semibold text-slate-900 dark:text-white {{ is_null($currentClass) ? 'text-sky-700 dark:text-sky-400' : '' }}">All Classes</p>
-                                    <p class="text-sm text-slate-500 dark:text-slate-400">Show all entries</p>
+                                    <p class="font-medium truncate">{{ $event['name'] ?? '' }}</p>
+                                    @if(isset($event['date']))
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $event['date'] }}</p>
+                                    @endif
                                 </div>
-                                @if(is_null($currentClass))
-                                    <svg class="w-6 h-6 text-sky-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                @if(($currentEvent['id'] ?? null) === ($event['id'] ?? null))
+                                    <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
                             </a>
-                            @foreach($classes as $class)
-                                <a 
-                                    href="{{ $class['href'] ?? '#' }}"
-                                    @if($class['wire'] ?? false) wire:navigate @endif
-                                    class="flex items-center gap-3 px-4 py-3 rounded-lg transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-sky-50 dark:bg-sky-900/20' : 'hover:bg-slate-50 dark:hover:bg-zinc-700' }}"
-                                >
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400' : 'bg-slate-100 dark:bg-zinc-700 text-slate-500 dark:text-slate-400' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                        </svg>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-semibold text-slate-900 dark:text-white truncate {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-sky-700 dark:text-sky-400' : '' }}">{{ $class['name'] ?? '' }}</p>
-                                    </div>
-                                    @if(($currentClass['id'] ?? null) === ($class['id'] ?? null))
-                                        <svg class="w-6 h-6 text-sky-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                        </svg>
-                                    @endif
-                                </a>
-                            @endforeach
-                        </div>
+                        @empty
+                            <p class="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No events available</p>
+                        @endforelse
                     </div>
                 </div>
-
-                <!-- Entry count badge -->
-                @if(isset($entryCount))
-                <div class="flex items-end pb-2 sm:pb-0 sm:items-center">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-zinc-700 rounded-xl border border-slate-200 dark:border-zinc-600">
-                        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span class="text-sm text-slate-500 dark:text-slate-400">Entries:</span>
-                        <span class="text-lg font-bold text-slate-900 dark:text-white">{{ $entryCount }}</span>
-                    </div>
-                </div>
-                @endif
             </div>
+
+            <!-- Class Selector -->
+            <div 
+                x-data="{ open: false }" 
+                @keydown.escape.window="open = false"
+                class="relative"
+            >
+                <button 
+                    @click="open = !open" 
+                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white transition-colors min-w-[180px]"
+                >
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                    </svg>
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-sm font-semibold truncate">{{ $currentClass['name'] ?? 'All Classes' }}</p>
+                    </div>
+                    <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div 
+                    x-show="open" 
+                    @click.away="open = false"
+                    x-transition
+                    x-cloak
+                    class="absolute left-0 mt-2 w-64 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
+                >
+                    <div class="p-2">
+                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Filter by Class
+                        </div>
+                        <!-- All Classes option -->
+                        <a 
+                            href="#"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ is_null($currentClass) ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                        >
+                            <svg class="w-5 h-5 shrink-0 {{ is_null($currentClass) ? 'text-sky-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                            </svg>
+                            <span class="font-medium">All Classes</span>
+                            @if(is_null($currentClass))
+                                <svg class="w-5 h-5 text-sky-500 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            @endif
+                        </a>
+                        @foreach($classes as $class)
+                            <a 
+                                href="{{ $class['href'] ?? '#' }}"
+                                @if($class['wire'] ?? false) wire:navigate @endif
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                            >
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-sky-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                </svg>
+                                <span class="font-medium truncate">{{ $class['name'] ?? '' }}</span>
+                                @if(($currentClass['id'] ?? null) === ($class['id'] ?? null))
+                                    <svg class="w-5 h-5 text-sky-500 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entry count badge -->
+            @if(isset($entryCount))
+            <div class="ml-auto flex items-center gap-2">
+                <span class="text-xs text-white/60">Entries:</span>
+                <span class="px-2.5 py-1 bg-white/20 rounded-md text-sm font-bold text-white">{{ $entryCount }}</span>
+            </div>
+            @endif
         </div>
         @endif
 
