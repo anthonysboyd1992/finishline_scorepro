@@ -98,7 +98,7 @@
 
         @if($showContextBar)
         <!-- Context Selection Bar (Event & Class) -->
-        <div class="flex items-center gap-3 bg-zinc-700 px-4 py-2 shrink-0">
+        <div class="flex items-center gap-3 bg-slate-200 dark:bg-zinc-600 px-4 py-2 shrink-0">
             <!-- Event Selector -->
             <div 
                 x-data="{ open: false }" 
@@ -107,7 +107,7 @@
             >
                 <button 
                     @click="open = !open" 
-                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white transition-colors min-w-[200px]"
+                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-zinc-900 hover:bg-black text-white transition-colors min-w-[200px]"
                 >
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -135,9 +135,9 @@
                             <a 
                                 href="{{ $event['href'] ?? '#' }}"
                                 @if($event['wire'] ?? false) wire:navigate @endif
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
                             >
-                                <svg class="w-5 h-5 shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-emerald-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 <div class="flex-1 min-w-0">
@@ -147,7 +147,7 @@
                                     @endif
                                 </div>
                                 @if(($currentEvent['id'] ?? null) === ($event['id'] ?? null))
-                                    <svg class="w-5 h-5 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
@@ -167,7 +167,7 @@
             >
                 <button 
                     @click="open = !open" 
-                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white transition-colors min-w-[180px]"
+                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-white hover:bg-slate-50 dark:bg-zinc-200 dark:hover:bg-white text-zinc-900 border border-slate-300 dark:border-zinc-400 transition-colors min-w-[180px]"
                 >
                     <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -175,7 +175,7 @@
                     <div class="flex-1 min-w-0 text-left">
                         <p class="text-sm font-semibold truncate">{{ $currentClass['name'] ?? 'All Classes' }}</p>
                     </div>
-                    <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -194,14 +194,14 @@
                         <!-- All Classes option -->
                         <a 
                             href="#"
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ is_null($currentClass) ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                            class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ is_null($currentClass) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
                         >
-                            <svg class="w-5 h-5 shrink-0 {{ is_null($currentClass) ? 'text-sky-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-5 h-5 shrink-0 {{ is_null($currentClass) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                             </svg>
                             <span class="font-medium">All Classes</span>
                             @if(is_null($currentClass))
-                                <svg class="w-5 h-5 text-sky-500 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                 </svg>
                             @endif
@@ -210,14 +210,14 @@
                             <a 
                                 href="{{ $class['href'] ?? '#' }}"
                                 @if($class['wire'] ?? false) wire:navigate @endif
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-700 dark:text-sky-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
                             >
-                                <svg class="w-5 h-5 shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-sky-500' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                 </svg>
                                 <span class="font-medium truncate">{{ $class['name'] ?? '' }}</span>
                                 @if(($currentClass['id'] ?? null) === ($class['id'] ?? null))
-                                    <svg class="w-5 h-5 text-sky-500 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
@@ -230,8 +230,8 @@
             <!-- Entry count badge -->
             @if(isset($entryCount))
             <div class="ml-auto flex items-center gap-2">
-                <span class="text-xs text-white/60">Entries:</span>
-                <span class="px-2.5 py-1 bg-white/20 rounded-md text-sm font-bold text-white">{{ $entryCount }}</span>
+                <span class="text-xs text-slate-600 dark:text-slate-300">Entries:</span>
+                <span class="px-2.5 py-1 bg-zinc-900 dark:bg-white rounded-md text-sm font-bold text-white dark:text-zinc-900">{{ $entryCount }}</span>
             </div>
             @endif
         </div>
