@@ -7,9 +7,10 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new class extends Component {
+new #[Layout('layouts::settings')] class extends Component {
     use ProfileValidationRules;
 
     public string $name = '';
@@ -76,52 +77,89 @@ new class extends Component {
     }
 }; ?>
 
-<section class="w-full">
-    @include('partials.settings-heading')
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Profile') }}</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ __('Update your name and email address') }}</p>
+    </div>
 
-    <flux:heading class="sr-only">{{ __('Profile Settings') }}</flux:heading>
+    <!-- Profile Form -->
+    <div class="bg-white dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700 p-6">
+        <form wire:submit="updateProfileInformation" class="space-y-6">
+            <div class="space-y-2">
+                <label for="name" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ __('Name') }}
+                </label>
+                <input
+                    id="name"
+                    wire:model="name"
+                    type="text"
+                    required
+                    autofocus
+                    autocomplete="name"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                />
+                @error('name')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-    <x-pages::settings.layout :heading="__('Profile')" :subheading="__('Update your name and email address')">
-        <form wire:submit="updateProfileInformation" class="my-6 w-full space-y-6">
-            <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name" />
-
-            <div>
-                <flux:input wire:model="email" :label="__('Email')" type="email" required autocomplete="email" />
+            <div class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ __('Email') }}
+                </label>
+                <input
+                    id="email"
+                    wire:model="email"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                />
+                @error('email')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
 
                 @if ($this->hasUnverifiedEmail)
-                    <div>
-                        <flux:text class="mt-4">
+                    <div class="mt-4">
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
                             {{ __('Your email address is unverified.') }}
-
-                            <flux:link class="text-sm cursor-pointer" wire:click.prevent="resendVerificationNotification">
+                            <button
+                                type="button"
+                                wire:click.prevent="resendVerificationNotification"
+                                class="text-red-600 dark:text-red-400 hover:underline cursor-pointer"
+                            >
                                 {{ __('Click here to re-send the verification email.') }}
-                            </flux:link>
-                        </flux:text>
+                            </button>
+                        </p>
 
                         @if (session('status') === 'verification-link-sent')
-                            <flux:text class="mt-2 font-medium !dark:text-green-400 !text-green-600">
+                            <p class="mt-2 text-sm font-medium text-green-600 dark:text-green-400">
                                 {{ __('A new verification link has been sent to your email address.') }}
-                            </flux:text>
+                            </p>
                         @endif
                     </div>
                 @endif
             </div>
 
             <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-profile-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    data-test="update-profile-button"
+                >
+                    {{ __('Save') }}
+                </button>
 
-                <x-action-message class="me-3" on="profile-updated">
+                <x-action-message class="text-sm text-green-600 dark:text-green-400" on="profile-updated">
                     {{ __('Saved.') }}
                 </x-action-message>
             </div>
         </form>
+    </div>
 
-        @if ($this->showDeleteUser)
-            <livewire:pages::settings.delete-user-form />
-        @endif
-    </x-pages::settings.layout>
-</section>
+    @if ($this->showDeleteUser)
+        <livewire:pages::settings.delete-user-form />
+    @endif
+</div>

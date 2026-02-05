@@ -4,9 +4,10 @@ use App\Concerns\PasswordValidationRules;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-new class extends Component {
+new #[Layout('layouts::settings')] class extends Component {
     use PasswordValidationRules;
 
     public string $current_password = '';
@@ -39,46 +40,80 @@ new class extends Component {
     }
 }; ?>
 
-<section class="w-full">
-    @include('partials.settings-heading')
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div>
+        <h1 class="text-2xl font-bold text-slate-900 dark:text-white">{{ __('Update Password') }}</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">{{ __('Ensure your account is using a long, random password to stay secure') }}</p>
+    </div>
 
-    <flux:heading class="sr-only">{{ __('Password Settings') }}</flux:heading>
+    <!-- Password Form -->
+    <div class="bg-white dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700 p-6">
+        <form method="POST" wire:submit="updatePassword" class="space-y-6">
+            <div class="space-y-2">
+                <label for="current_password" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ __('Current password') }}
+                </label>
+                <input
+                    id="current_password"
+                    wire:model="current_password"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                />
+                @error('current_password')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
-    <x-pages::settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
-        <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('Current password')"
-                type="password"
-                required
-                autocomplete="current-password"
-            />
-            <flux:input
-                wire:model="password"
-                :label="__('New password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
-            <flux:input
-                wire:model="password_confirmation"
-                :label="__('Confirm Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
+            <div class="space-y-2">
+                <label for="password" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ __('New password') }}
+                </label>
+                <input
+                    id="password"
+                    wire:model="password"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                />
+                @error('password')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div class="space-y-2">
+                <label for="password_confirmation" class="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {{ __('Confirm Password') }}
+                </label>
+                <input
+                    id="password_confirmation"
+                    wire:model="password_confirmation"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    class="w-full px-3 py-2 border border-slate-300 dark:border-zinc-600 rounded-md bg-white dark:bg-zinc-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors"
+                />
+                @error('password_confirmation')
+                    <p class="text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                @enderror
+            </div>
 
             <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-password-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-md transition-colors focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                    data-test="update-password-button"
+                >
+                    {{ __('Save') }}
+                </button>
 
-                <x-action-message class="me-3" on="password-updated">
+                <x-action-message class="text-sm text-green-600 dark:text-green-400" on="password-updated">
                     {{ __('Saved.') }}
                 </x-action-message>
             </div>
         </form>
-    </x-pages::settings.layout>
-</section>
+    </div>
+</div>
