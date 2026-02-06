@@ -14,6 +14,7 @@ new class extends Component
     public string $filter = '';
     public string $lineupMethod = 'Heats By Group';
     public int $rowCount = 5;
+    public int $lineupsPerRow = 3;
     public string $entryNumberInput = '';
     public int $activeHeat = 0;
     public int $heatCount = 4;
@@ -361,11 +362,86 @@ new class extends Component
 };
 ?>
 
-<div class="flex flex-1 overflow-hidden" x-data="{ dragId: null, hoverTarget: null }">
+<div class="flex flex-1 overflow-hidden" x-data="{
+    dragId: null,
+    hoverTarget: null,
+    touchClone: null,
+    touchEntryId: null,
+    touchStartX: 0,
+    touchStartY: 0,
+    touchActive: false,
+    touchOffsetX: 0,
+    touchOffsetY: 0,
+
+    onTouchStart(e, entryId) {
+        this.touchEntryId = entryId;
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+        this.touchActive = false;
+    },
+
+    onTouchMove(e) {
+        if (!this.touchEntryId) return;
+        let touch = e.touches[0];
+        let dx = touch.clientX - this.touchStartX;
+        let dy = touch.clientY - this.touchStartY;
+
+        if (!this.touchActive && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+            this.touchActive = true;
+            this.dragId = this.touchEntryId;
+            let el = e.target.closest('[draggable]');
+            if (el) {
+                let clone = el.cloneNode(true);
+                let rect = el.getBoundingClientRect();
+                clone.style.cssText = 'position:fixed;pointer-events:none;opacity:0.85;z-index:9999;width:' + rect.width + 'px;transition:none;';
+                clone.style.left = (touch.clientX - rect.width / 2) + 'px';
+                clone.style.top = (touch.clientY - 20) + 'px';
+                this.touchOffsetX = rect.width / 2;
+                this.touchOffsetY = 20;
+                document.body.appendChild(clone);
+                this.touchClone = clone;
+            }
+        }
+
+        if (this.touchActive) {
+            e.preventDefault();
+            if (this.touchClone) {
+                this.touchClone.style.left = (touch.clientX - this.touchOffsetX) + 'px';
+                this.touchClone.style.top = (touch.clientY - this.touchOffsetY) + 'px';
+            }
+            if (this.touchClone) this.touchClone.style.display = 'none';
+            let under = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (this.touchClone) this.touchClone.style.display = '';
+            if (under) {
+                let zone = under.closest('[data-drop-zone]');
+                this.hoverTarget = zone ? zone.dataset.dropZone : null;
+            }
+        }
+    },
+
+    onTouchEnd(e) {
+        if (this.touchActive && this.dragId && this.hoverTarget) {
+            if (this.hoverTarget === 'entrylist') {
+                $wire.dropEntry(this.dragId, 'entrylist');
+            } else {
+                let m = this.hoverTarget.match(/^h(\d+)p(\d+)$/);
+                if (m) {
+                    $wire.dropEntry(this.dragId, m[1], parseInt(m[2]));
+                }
+            }
+        }
+        if (this.touchClone) { this.touchClone.remove(); this.touchClone = null; }
+        this.dragId = null;
+        this.hoverTarget = null;
+        this.touchEntryId = null;
+        this.touchActive = false;
+    }
+}">
     <!-- Left Panel - Entry List -->
     <div
-        class="w-64 lg:w-72 flex flex-col bg-white dark:bg-zinc-800 border-r border-slate-200 dark:border-zinc-700 shrink-0 transition-all"
+        class="w-64 lg:w-72 flex flex-col bg-slate-100 dark:bg-zinc-800 border-r border-slate-200 dark:border-zinc-700 shrink-0 transition-all"
         :class="{ 'ring-2 ring-inset ring-emerald-400 bg-emerald-50 dark:bg-emerald-900/20': hoverTarget === 'entrylist' && dragId }"
+        data-drop-zone="entrylist"
         x-on:dragover.prevent="hoverTarget = 'entrylist'"
         x-on:drop.prevent="if (dragId) { $wire.dropEntry(dragId, 'entrylist'); dragId = null; hoverTarget = null; }"
     >
@@ -430,8 +506,11 @@ new class extends Component
                     draggable="true"
                     x-on:dragstart="dragId = {{ $entry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
                     x-on:dragend="dragId = null; hoverTarget = null"
+                    x-on:touchstart="onTouchStart($event, {{ $entry['id'] }})"
+                    x-on:touchmove="onTouchMove($event)"
+                    x-on:touchend="onTouchEnd($event)"
                     wire:click="addEntryToActiveHeat({{ $entry['id'] }})"
-                    class="flex items-center gap-3 px-3 py-3 border-b border-slate-100 dark:border-zinc-700/50 hover:bg-sky-50 dark:hover:bg-sky-900/10 cursor-pointer active:bg-sky-100 dark:active:bg-sky-900/20 transition-colors"
+                    class="flex items-center gap-3 px-3 py-3 border-b border-slate-200 dark:border-zinc-700/50 hover:bg-sky-100 dark:hover:bg-sky-900/10 cursor-pointer active:bg-sky-200 dark:active:bg-sky-900/20 transition-colors"
                 >
                     <div class="flex-1 min-w-0">
                         <p class="text-base font-bold text-slate-900 dark:text-white truncate leading-tight">{{ $entry['driver'] }}</p>
@@ -450,18 +529,18 @@ new class extends Component
     </div>
 
     <!-- Main Content - Heat Cards -->
-    <div class="flex-1 bg-slate-100 dark:bg-zinc-900 overflow-y-auto">
-            <div class="p-5">
-                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div class="flex-1 flex flex-col bg-slate-100 dark:bg-zinc-900 min-h-0">
+        <div class="flex-1 overflow-y-auto p-5">
+                <div class="grid gap-5" style="grid-template-columns: repeat({{ $lineupsPerRow }}, minmax(0, 1fr))">
                     @foreach($heats as $heatIndex => $heat)
                         <div
-                            class="bg-white dark:bg-zinc-800 rounded-xl border-2 shadow-md overflow-hidden transition-colors {{ $activeHeat === $heatIndex ? 'border-sky-500 ring-2 ring-sky-500/30' : 'border-slate-200 dark:border-zinc-700' }}"
+                            class="bg-white dark:bg-zinc-800 rounded-xl border-2 shadow-md overflow-hidden transition-colors cursor-pointer {{ $activeHeat === $heatIndex ? 'border-sky-500 ring-2 ring-sky-500/30' : 'border-slate-200 dark:border-zinc-700' }}"
                             wire:key="heat-{{ $heat['id'] }}"
+                            wire:click="setActiveHeat({{ $heatIndex }})"
                         >
-                            <!-- Heat Header (click to set active) -->
+                            <!-- Heat Header -->
                             <div
-                                wire:click="setActiveHeat({{ $heatIndex }})"
-                                class="flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors {{ $activeHeat === $heatIndex ? 'bg-sky-700 dark:bg-sky-800' : 'bg-slate-800 dark:bg-zinc-900 hover:bg-slate-700 dark:hover:bg-zinc-800' }}"
+                                class="flex items-center gap-3 px-5 py-3 transition-colors {{ $activeHeat === $heatIndex ? 'bg-sky-700 dark:bg-sky-800' : 'bg-slate-800 dark:bg-zinc-900 hover:bg-slate-700 dark:hover:bg-zinc-800' }}"
                             >
                                 <svg class="w-5 h-5 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -470,7 +549,7 @@ new class extends Component
                             </div>
 
                             <!-- Column Headers -->
-                            <div class="grid grid-cols-[36px_1fr_1fr]">
+                            <div class="grid grid-cols-[24px_1fr_1fr]">
                                 <div class="bg-slate-100 dark:bg-zinc-700/80 border-b border-r border-slate-200 dark:border-zinc-600"></div>
                                 <div class="px-4 py-2 bg-slate-100 dark:bg-zinc-700/80 text-center border-b border-r border-slate-200 dark:border-zinc-600">
                                     <span class="text-sm font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">Inside</span>
@@ -494,9 +573,9 @@ new class extends Component
                                     $insideKey = 'h' . $heatIndex . 'p' . $insideIdx;
                                     $outsideKey = 'h' . $heatIndex . 'p' . $outsideIdx;
                                 @endphp
-                                <div class="grid grid-cols-[36px_1fr_1fr] border-b border-slate-100 dark:border-zinc-700/50 last:border-b-0">
+                                <div class="grid grid-cols-[24px_1fr_1fr] border-b border-slate-100 dark:border-zinc-700/50 last:border-b-0">
                                     <!-- Row Number -->
-                                    <div class="flex items-center justify-center bg-slate-50 dark:bg-zinc-800/80 border-r border-slate-200 dark:border-zinc-700 text-sm font-bold text-slate-400 dark:text-slate-500">
+                                    <div class="flex items-center justify-center bg-slate-50 dark:bg-zinc-800/80 border-r border-slate-200 dark:border-zinc-700 text-xs font-bold text-slate-400 dark:text-slate-500">
                                         {{ $row + 1 }}
                                     </div>
 
@@ -504,6 +583,7 @@ new class extends Component
                                     <div
                                         class="relative border-r border-slate-200 dark:border-zinc-700 p-1 min-h-[68px] transition-all"
                                         :class="{ 'bg-sky-100 dark:bg-sky-900/30 ring-2 ring-inset ring-sky-400': hoverTarget === '{{ $insideKey }}' && dragId }"
+                                        data-drop-zone="{{ $insideKey }}"
                                         x-on:dragover.prevent="hoverTarget = '{{ $insideKey }}'"
                                         x-on:drop.prevent.stop="if (dragId) { $wire.dropEntry(dragId, '{{ $heatIndex }}', {{ $insideIdx }}); dragId = null; hoverTarget = null; }"
                                     >
@@ -512,6 +592,9 @@ new class extends Component
                                                 draggable="true"
                                                 x-on:dragstart="dragId = {{ $insideEntry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
                                                 x-on:dragend="dragId = null; hoverTarget = null"
+                                                x-on:touchstart="onTouchStart($event, {{ $insideEntry['id'] }})"
+                                                x-on:touchmove="onTouchMove($event)"
+                                                x-on:touchend="onTouchEnd($event)"
                                                 class="group relative bg-white dark:bg-zinc-700 border-2 border-slate-200 dark:border-zinc-600 rounded-md px-1.5 py-1.5 cursor-grab active:cursor-grabbing hover:border-sky-400 hover:shadow-md transition-all h-full flex flex-col items-center justify-center text-center"
                                             >
                                                 <!-- Position Badge (left corner, black) -->
@@ -521,8 +604,8 @@ new class extends Component
                                                 <!-- X Remove Button (right corner) -->
                                                 <button
                                                     draggable="false"
-                                                    wire:click="dropEntry({{ $insideEntry['id'] }}, 'entrylist')"
-                                                    class="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded-sm bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    wire:click.stop="dropEntry({{ $insideEntry['id'] }}, 'entrylist')"
+                                                    class="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center rounded-sm bg-red-500 hover:bg-red-600 text-white text-xs font-bold opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity z-10"
                                                     title="Remove"
                                                 >&times;</button>
                                                 <!-- Big Number -->
@@ -539,7 +622,7 @@ new class extends Component
                                                 <span class="text-[10px] font-bold text-sky-600 dark:text-sky-300">Drop Here</span>
                                             </div>
                                         @else
-                                            <div class="h-full rounded-md border-2 border-dashed flex items-center justify-center min-h-[56px] transition-colors" :class="hoverTarget === '{{ $insideKey }}' && dragId ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20' : 'border-slate-200 dark:border-zinc-700'">
+                                            <div class="h-full rounded-md border-2 border-dashed flex items-center justify-center min-h-[56px] transition-colors" :class="hoverTarget === '{{ $insideKey }}' && dragId ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20' : 'border-slate-200 dark:border-zinc-700'" data-drop-zone="{{ $insideKey }}">
                                                 <span class="text-[10px] font-bold" :class="hoverTarget === '{{ $insideKey }}' && dragId ? 'text-sky-500' : 'text-slate-300 dark:text-zinc-600'" x-text="hoverTarget === '{{ $insideKey }}' && dragId ? 'Drop Here' : '{{ $insideIdx + 1 }}'"></span>
                                             </div>
                                         @endif
@@ -549,6 +632,7 @@ new class extends Component
                                     <div
                                         class="relative p-1 min-h-[68px] transition-all"
                                         :class="{ 'bg-sky-100 dark:bg-sky-900/30 ring-2 ring-inset ring-sky-400': hoverTarget === '{{ $outsideKey }}' && dragId }"
+                                        data-drop-zone="{{ $outsideKey }}"
                                         x-on:dragover.prevent="hoverTarget = '{{ $outsideKey }}'"
                                         x-on:drop.prevent.stop="if (dragId) { $wire.dropEntry(dragId, '{{ $heatIndex }}', {{ $outsideIdx }}); dragId = null; hoverTarget = null; }"
                                     >
@@ -557,6 +641,9 @@ new class extends Component
                                                 draggable="true"
                                                 x-on:dragstart="dragId = {{ $outsideEntry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
                                                 x-on:dragend="dragId = null; hoverTarget = null"
+                                                x-on:touchstart="onTouchStart($event, {{ $outsideEntry['id'] }})"
+                                                x-on:touchmove="onTouchMove($event)"
+                                                x-on:touchend="onTouchEnd($event)"
                                                 class="group relative bg-white dark:bg-zinc-700 border-2 border-slate-200 dark:border-zinc-600 rounded-md px-1.5 py-1.5 cursor-grab active:cursor-grabbing hover:border-sky-400 hover:shadow-md transition-all h-full flex flex-col items-center justify-center text-center"
                                             >
                                                 <!-- Position Badge (left corner, black) -->
@@ -566,8 +653,8 @@ new class extends Component
                                                 <!-- X Remove Button (right corner) -->
                                                 <button
                                                     draggable="false"
-                                                    wire:click="dropEntry({{ $outsideEntry['id'] }}, 'entrylist')"
-                                                    class="absolute top-0.5 right-0.5 w-4 h-4 flex items-center justify-center rounded-sm bg-red-500 hover:bg-red-600 text-white text-[10px] font-bold opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    wire:click.stop="dropEntry({{ $outsideEntry['id'] }}, 'entrylist')"
+                                                    class="absolute top-0.5 right-0.5 w-5 h-5 flex items-center justify-center rounded-sm bg-red-500 hover:bg-red-600 text-white text-xs font-bold opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 transition-opacity z-10"
                                                     title="Remove"
                                                 >&times;</button>
                                                 <!-- Big Number -->
@@ -584,7 +671,7 @@ new class extends Component
                                                 <span class="text-[10px] font-bold text-sky-600 dark:text-sky-300">Drop Here</span>
                                             </div>
                                         @else
-                                            <div class="h-full rounded-md border-2 border-dashed flex items-center justify-center min-h-[56px] transition-colors" :class="hoverTarget === '{{ $outsideKey }}' && dragId ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20' : 'border-slate-200 dark:border-zinc-700'">
+                                            <div class="h-full rounded-md border-2 border-dashed flex items-center justify-center min-h-[56px] transition-colors" :class="hoverTarget === '{{ $outsideKey }}' && dragId ? 'border-sky-400 bg-sky-50 dark:bg-sky-900/20' : 'border-slate-200 dark:border-zinc-700'" data-drop-zone="{{ $outsideKey }}">
                                                 <span class="text-[10px] font-bold" :class="hoverTarget === '{{ $outsideKey }}' && dragId ? 'text-sky-500' : 'text-slate-300 dark:text-zinc-600'" x-text="hoverTarget === '{{ $outsideKey }}' && dragId ? 'Drop Here' : '{{ $outsideIdx + 1 }}'"></span>
                                             </div>
                                         @endif
@@ -609,43 +696,44 @@ new class extends Component
                         </div>
                     @endforeach
                 </div>
+        </div>
+
+        <!-- Bottom Toolbar (fixed at bottom) -->
+        <div class="shrink-0 flex items-center gap-4 px-5 py-3 bg-white dark:bg-zinc-800 border-t border-slate-200 dark:border-zinc-700">
+            <div class="flex items-center gap-2">
+                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Lineups per row:</span>
+                <select
+                    wire:model.live="lineupsPerRow"
+                    class="text-sm border border-slate-300 dark:border-zinc-600 rounded-lg px-3 py-1.5 bg-white dark:bg-zinc-700 text-slate-700 dark:text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                >
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
             </div>
 
-            <!-- Bottom Toolbar -->
-            <div class="sticky bottom-0 flex items-center gap-4 px-5 py-3 bg-white dark:bg-zinc-800 border-t border-slate-200 dark:border-zinc-700">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Rows per heat:</span>
-                    <select
-                        wire:model.live="rowCount"
-                        class="text-sm border border-slate-300 dark:border-zinc-600 rounded-lg px-3 py-1.5 bg-white dark:bg-zinc-700 text-slate-700 dark:text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
-                    >
-                        <option value="3">3 rows</option>
-                        <option value="4">4 rows</option>
-                        <option value="5">5 rows</option>
-                        <option value="6">6 rows</option>
-                    </select>
-                </div>
-
-                <div class="flex items-center gap-1.5">
-                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Heats:</span>
-                    <button
-                        wire:click="removeHeat"
-                        class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold {{ count($heats) <= 1 ? 'opacity-40 cursor-not-allowed' : '' }}"
-                        @if(count($heats) <= 1) disabled @endif
-                    >&minus;</button>
-                    <span class="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums w-6 text-center">{{ count($heats) }}</span>
-                    <button
-                        wire:click="addHeat"
-                        class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold"
-                    >+</button>
-                </div>
-
-                <div class="ml-auto flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
-                    <span>{{ count($unassignedEntries) }} unassigned</span>
-                    <span class="text-slate-300 dark:text-zinc-600">|</span>
-                    @php $totalAssigned = 0; foreach ($heats as $h) { $totalAssigned += count($h['entries']); } @endphp
-                    <span>{{ $totalAssigned }} in heats</span>
-                </div>
+            <div class="flex items-center gap-1.5">
+                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Heats:</span>
+                <button
+                    wire:click="removeHeat"
+                    class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold {{ count($heats) <= 1 ? 'opacity-40 cursor-not-allowed' : '' }}"
+                    @if(count($heats) <= 1) disabled @endif
+                >&minus;</button>
+                <span class="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums w-6 text-center">{{ count($heats) }}</span>
+                <button
+                    wire:click="addHeat"
+                    class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold"
+                >+</button>
             </div>
+
+            <div class="ml-auto flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                <span>{{ count($unassignedEntries) }} unassigned</span>
+                <span class="text-slate-300 dark:text-zinc-600">|</span>
+                @php $totalAssigned = 0; foreach ($heats as $h) { $totalAssigned += count($h['entries']); } @endphp
+                <span>{{ $totalAssigned }} in heats</span>
+            </div>
+        </div>
     </div>
 </div>
