@@ -365,6 +365,7 @@ new class extends Component
 <div class="flex flex-1 overflow-hidden min-h-0" x-data="{
     dragId: null,
     hoverTarget: null,
+    _dragGhost: null,
     touchClone: null,
     touchEntryId: null,
     touchStartX: 0,
@@ -372,6 +373,25 @@ new class extends Component
     touchActive: false,
     touchOffsetX: 0,
     touchOffsetY: 0,
+
+    startDrag(e, id, label) {
+        this.dragId = id;
+        e.dataTransfer.effectAllowed = 'move';
+
+        // Create a small custom drag ghost
+        let ghost = document.createElement('div');
+        ghost.textContent = label;
+        ghost.style.cssText = 'position:fixed;left:-9999px;top:-9999px;padding:6px 14px;border-radius:6px;background:#0ea5e9;color:#fff;font-size:14px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.2);pointer-events:none;z-index:9999;';
+        document.body.appendChild(ghost);
+        e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+        this._dragGhost = ghost;
+    },
+
+    endDrag() {
+        this.dragId = null;
+        this.hoverTarget = null;
+        if (this._dragGhost) { this._dragGhost.remove(); this._dragGhost = null; }
+    },
 
     onTouchStart(e, entryId) {
         this.touchEntryId = entryId;
@@ -504,8 +524,8 @@ new class extends Component
                 <div
                     wire:key="entry-{{ $entry['id'] }}"
                     draggable="true"
-                    x-on:dragstart="dragId = {{ $entry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
-                    x-on:dragend="dragId = null; hoverTarget = null"
+                    x-on:dragstart="startDrag($event, {{ $entry['id'] }}, '#{{ $entry['number'] }} {{ $entry['driver'] }}')"
+                    x-on:dragend="endDrag()"
                     x-on:touchstart="onTouchStart($event, {{ $entry['id'] }})"
                     x-on:touchmove="onTouchMove($event)"
                     x-on:touchend="onTouchEnd($event)"
@@ -590,8 +610,8 @@ new class extends Component
                                         @if($insideEntry)
                                             <div
                                                 draggable="true"
-                                                x-on:dragstart="dragId = {{ $insideEntry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
-                                                x-on:dragend="dragId = null; hoverTarget = null"
+                                                x-on:dragstart="startDrag($event, {{ $insideEntry['id'] }}, '#{{ $insideEntry['number'] }}')"
+                                                x-on:dragend="endDrag()"
                                                 x-on:touchstart="onTouchStart($event, {{ $insideEntry['id'] }})"
                                                 x-on:touchmove="onTouchMove($event)"
                                                 x-on:touchend="onTouchEnd($event)"
@@ -639,8 +659,8 @@ new class extends Component
                                         @if($outsideEntry)
                                             <div
                                                 draggable="true"
-                                                x-on:dragstart="dragId = {{ $outsideEntry['id'] }}; $event.dataTransfer.effectAllowed = 'move'"
-                                                x-on:dragend="dragId = null; hoverTarget = null"
+                                                x-on:dragstart="startDrag($event, {{ $outsideEntry['id'] }}, '#{{ $outsideEntry['number'] }}')"
+                                                x-on:dragend="endDrag()"
                                                 x-on:touchstart="onTouchStart($event, {{ $outsideEntry['id'] }})"
                                                 x-on:touchmove="onTouchMove($event)"
                                                 x-on:touchend="onTouchEnd($event)"
