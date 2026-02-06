@@ -1,7 +1,7 @@
 @props(['title' => null])
 
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     @include('partials.head')
 </head>
@@ -23,6 +23,8 @@
 
             <!-- User Menu -->
             <div class="flex items-center gap-3">
+                @include('partials.dark-mode-toggle')
+
                 <!-- Settings Link -->
                 <a href="{{ route('profile.edit') }}" wire:navigate class="hidden sm:flex items-center gap-2 px-3 py-2 text-sm text-white/80 hover:text-white hover:bg-white/10 rounded-md transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
