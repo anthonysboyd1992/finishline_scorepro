@@ -54,8 +54,8 @@ $currentItem = match(true) {
 <head>
     @include('partials.head')
 </head>
-<body class="h-screen overflow-hidden bg-slate-100 dark:bg-zinc-900">
-    <div class="flex h-screen flex-col">
+<body class="h-dvh overflow-hidden bg-slate-100 dark:bg-zinc-900">
+    <div class="flex h-dvh flex-col">
         <!-- Top Header Bar -->
         <header class="flex h-12 items-center justify-between bg-zinc-800 px-4 shrink-0">
             <div class="flex items-center gap-4">

@@ -362,7 +362,7 @@ new class extends Component
 };
 ?>
 
-<div class="flex flex-1 overflow-hidden" x-data="{
+<div class="flex flex-1 overflow-hidden min-h-0" x-data="{
     dragId: null,
     hoverTarget: null,
     touchClone: null,
@@ -718,8 +718,8 @@ new class extends Component
                 <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Heats:</span>
                 <button
                     wire:click="removeHeat"
-                    class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold {{ count($heats) <= 1 ? 'opacity-40 cursor-not-allowed' : '' }}"
-                    @if(count($heats) <= 1) disabled @endif
+                    class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold {{ count($heats) < 2 ? 'opacity-40 cursor-not-allowed' : '' }}"
+                    {{ count($heats) < 2 ? 'disabled' : '' }}
                 >&minus;</button>
                 <span class="text-sm font-bold text-slate-700 dark:text-slate-300 tabular-nums w-6 text-center">{{ count($heats) }}</span>
                 <button

@@ -18,8 +18,8 @@
 <head>
     @include('partials.head')
 </head>
-<body class="h-screen overflow-hidden bg-slate-100 dark:bg-zinc-900">
-    <div class="flex h-screen flex-col">
+<body class="h-dvh overflow-hidden bg-slate-100 dark:bg-zinc-900">
+    <div class="flex h-dvh flex-col">
         <!-- Top Header Bar -->
         <header class="flex h-12 items-center justify-between bg-zinc-800 px-4 shrink-0">
             <div class="flex items-center gap-4">
@@ -240,7 +240,7 @@
         @endif
 
         <!-- Main Content Area -->
-        <div class="flex flex-1 overflow-hidden">
+        <div class="flex flex-1 overflow-hidden min-h-0">
             <!-- Red Sidebar Navigation -->
             <nav class="flex w-20 md:w-28 flex-col bg-[#c73e3e] text-white shrink-0">
                 <div class="flex-1 overflow-y-auto py-2">
@@ -260,7 +260,7 @@
             </nav>
 
             <!-- Content Panels -->
-            <div class="flex flex-1 overflow-hidden">
+            <div class="flex flex-1 overflow-hidden min-h-0">
                 {{ $slot }}
             </div>
         </div>
