@@ -3,8 +3,18 @@
         dark: document.documentElement.classList.contains('dark'),
         toggle() {
             this.dark = !this.dark;
+            const theme = this.dark ? 'dark' : 'light';
             document.documentElement.classList.toggle('dark', this.dark);
-            localStorage.setItem('theme', this.dark ? 'dark' : 'light');
+            localStorage.setItem('theme', theme);
+
+            fetch('/api/appearance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]')?.content || ''
+                },
+                body: JSON.stringify({ appearance: theme })
+            });
         }
     }"
     @click="toggle()"

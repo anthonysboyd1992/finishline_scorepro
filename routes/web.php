@@ -34,4 +34,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+// Appearance toggle (used by nav bar dark mode toggle)
+Route::post('/api/appearance', function (Illuminate\Http\Request $request) {
+    $request->validate(['appearance' => 'required|in:light,dark,system']);
+    $request->user()->update(['appearance' => $request->appearance]);
+
+    return response()->noContent();
+})->middleware('auth')->name('appearance.update');
+
 require __DIR__.'/settings.php';

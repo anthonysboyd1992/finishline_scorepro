@@ -4,7 +4,19 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new #[Layout('layouts::settings')] class extends Component {
-    //
+    public string $appearance = 'system';
+
+    public function mount(): void
+    {
+        $this->appearance = auth()->user()->appearance ?? 'system';
+    }
+
+    public function updateAppearance(string $value): void
+    {
+        $this->appearance = $value;
+
+        auth()->user()->update(['appearance' => $value]);
+    }
 }; ?>
 
 <div class="space-y-6">
@@ -16,13 +28,12 @@ new #[Layout('layouts::settings')] class extends Component {
 
     <!-- Appearance Options -->
     <div class="bg-white dark:bg-zinc-800 rounded-xl border border-slate-200 dark:border-zinc-700 p-6">
-        <div 
-            x-data="{ 
-                appearance: localStorage.getItem('theme') || 'system',
-                setAppearance(value) {
-                    this.appearance = value;
+        <div
+            x-data="{
+                appearance: @entangle('appearance'),
+                applyTheme(value) {
                     if (value === 'system') {
-                        localStorage.removeItem('theme');
+                        localStorage.setItem('theme', 'system');
                         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                             document.documentElement.classList.add('dark');
                         } else {
@@ -37,12 +48,13 @@ new #[Layout('layouts::settings')] class extends Component {
                     }
                 }
             }"
+            x-effect="applyTheme(appearance)"
             class="flex flex-wrap gap-3"
         >
             <!-- Light Mode -->
             <button
                 type="button"
-                @click="setAppearance('light')"
+                @click="$wire.updateAppearance('light')"
                 :class="appearance === 'light' ? 'ring-2 ring-red-500 border-red-500' : 'border-slate-300 dark:border-zinc-600'"
                 class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-700 border rounded-lg transition-all hover:border-red-300 dark:hover:border-red-600"
             >
@@ -55,7 +67,7 @@ new #[Layout('layouts::settings')] class extends Component {
             <!-- Dark Mode -->
             <button
                 type="button"
-                @click="setAppearance('dark')"
+                @click="$wire.updateAppearance('dark')"
                 :class="appearance === 'dark' ? 'ring-2 ring-red-500 border-red-500' : 'border-slate-300 dark:border-zinc-600'"
                 class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-700 border rounded-lg transition-all hover:border-red-300 dark:hover:border-red-600"
             >
@@ -68,7 +80,7 @@ new #[Layout('layouts::settings')] class extends Component {
             <!-- System Mode -->
             <button
                 type="button"
-                @click="setAppearance('system')"
+                @click="$wire.updateAppearance('system')"
                 :class="appearance === 'system' ? 'ring-2 ring-red-500 border-red-500' : 'border-slate-300 dark:border-zinc-600'"
                 class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-zinc-700 border rounded-lg transition-all hover:border-red-300 dark:hover:border-red-600"
             >
