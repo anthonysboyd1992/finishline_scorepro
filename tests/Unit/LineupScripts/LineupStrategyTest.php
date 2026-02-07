@@ -5,6 +5,7 @@ use App\LineupScripts\Invert;
 use App\LineupScripts\LineupStrategy;
 use App\LineupScripts\PillDraw;
 use App\LineupScripts\PointsStanding;
+use App\LineupScripts\QualifyingResults;
 use App\LineupScripts\QualifyingTime;
 use App\LineupScripts\Random;
 
@@ -26,6 +27,7 @@ it('implements the LineupStrategy interface', function (string $class) {
 })->with([
     HeatsByGroup::class,
     PillDraw::class,
+    QualifyingResults::class,
     QualifyingTime::class,
     PointsStanding::class,
     Invert::class,
@@ -84,6 +86,9 @@ it('random shuffles entries', function () {
     sort($ids);
     expect($ids)->toBe([1, 2, 3, 4, 5]);
 });
+
+// Note: QualifyingResults is excluded from unit tests because it queries the DB.
+// It is fully tested in Feature/QualifyingResultsStrategyTest.
 
 it('all strategies handle an empty array', function (string $class) {
     $result = (new $class)->order([]);

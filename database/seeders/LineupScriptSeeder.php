@@ -15,10 +15,10 @@ class LineupScriptSeeder extends Seeder
     private const RACE_TYPE_SCRIPTS = [
         'Hotlaps' => ['random', 'pill_draw'],
         'Qualifying' => ['random', 'pill_draw', 'points_standing'],
-        'Heat' => ['heats_by_group', 'pill_draw', 'qualifying_time', 'points_standing', 'invert', 'random'],
-        'Dash' => ['qualifying_time', 'invert', 'points_standing'],
-        'A-Feature' => ['qualifying_time', 'points_standing', 'invert'],
-        'B-Feature' => ['qualifying_time', 'points_standing', 'invert'],
+        'Heat' => ['heats_by_group', 'pill_draw', 'qualifying_results', 'qualifying_time', 'points_standing', 'invert', 'random'],
+        'Dash' => ['qualifying_results', 'qualifying_time', 'invert', 'points_standing'],
+        'A-Feature' => ['qualifying_results', 'qualifying_time', 'points_standing', 'invert'],
+        'B-Feature' => ['qualifying_results', 'qualifying_time', 'points_standing', 'invert'],
     ];
 
     /**
@@ -36,6 +36,11 @@ class LineupScriptSeeder extends Seeder
             'name' => 'Pill Draw',
             'description' => 'Random draw order for heat positions',
             'icon' => 'shuffle',
+        ],
+        'qualifying_results' => [
+            'name' => 'Qualifying Results',
+            'description' => 'Sort entries by fastest qualifying result time',
+            'icon' => 'stopwatch',
         ],
         'qualifying_time' => [
             'name' => 'Qualifying Time',

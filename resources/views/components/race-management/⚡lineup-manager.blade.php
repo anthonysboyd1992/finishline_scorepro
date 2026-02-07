@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Entry;
 use App\Models\LineupScript;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\On;
@@ -22,43 +23,24 @@ new class extends Component
     public int $heatCount = 4;
     public bool $showScriptPicker = false;
     public string $raceTypeLabel = 'Heat';
+    public int $eventId = 0;
+    public int $raceClassId = 0;
 
     public function mount(): void
     {
-        $this->unassignedEntries = [
-            ['id' => 1, 'number' => '24', 'driver' => 'Allison, Kobe', 'city' => 'Lima, OH'],
-            ['id' => 2, 'number' => '5', 'driver' => 'Christie, D.J.', 'city' => 'Beachville, ON'],
-            ['id' => 3, 'number' => '6', 'driver' => 'Coniam, Ryan', 'city' => 'Burlington, ON'],
-            ['id' => 4, 'number' => '85', 'driver' => 'Daggett, Dustin', 'city' => 'Portland, MI'],
-            ['id' => 5, 'number' => '23', 'driver' => 'Dobie, Devon', 'city' => 'Wapakoneta, OH'],
-            ['id' => 6, 'number' => '12DD', 'driver' => 'Dryden, Darren', 'city' => 'Freelton, ON'],
-            ['id' => 7, 'number' => '7', 'driver' => 'Gledhill, Eric', 'city' => 'Thamesford, ON'],
-            ['id' => 8, 'number' => '7C', 'driver' => 'Gressman, Phil', 'city' => 'Fremont, OH'],
-            ['id' => 9, 'number' => '01', 'driver' => 'Gunn, Tyler', 'city' => 'Napoleon, OH'],
-            ['id' => 10, 'number' => '13', 'driver' => 'Gurley, Van Jr', 'city' => 'Valparaiso, IN'],
-            ['id' => 11, 'number' => '77X', 'driver' => 'Hill, Alex', 'city' => 'Dublin, OH'],
-            ['id' => 12, 'number' => '15', 'driver' => 'Turner, Ryan', 'city' => 'Troy, OH'],
-            ['id' => 13, 'number' => '9', 'driver' => 'Martin, Liam', 'city' => 'Columbus, OH'],
-            ['id' => 14, 'number' => '51X', 'driver' => 'Hickle, J.J.', 'city' => 'Findlay, OH'],
-            ['id' => 15, 'number' => '45', 'driver' => 'Sheridan, Nick', 'city' => 'Toledo, OH'],
-            ['id' => 16, 'number' => '98', 'driver' => 'Trenca, Joe', 'city' => 'Sandusky, OH'],
-            ['id' => 17, 'number' => '77', 'driver' => 'Powless, Tyeller', 'city' => 'Brantford, ON'],
-            ['id' => 18, 'number' => '49', 'driver' => 'Ruhlman, Brian', 'city' => 'Clyde, OH'],
-            ['id' => 19, 'number' => '40X', 'driver' => 'Helms, Caleb', 'city' => 'Findlay, OH'],
-            ['id' => 20, 'number' => '11N', 'driver' => 'Jedrzejek, Kasey', 'city' => 'Toledo, OH'],
-            ['id' => 21, 'number' => '71H', 'driver' => 'Stambaugh, Max', 'city' => 'Elida, OH'],
-            ['id' => 22, 'number' => 'X', 'driver' => 'Keegan, Mike', 'city' => 'London, ON'],
-            ['id' => 23, 'number' => '12B', 'driver' => 'Hall, Luke', 'city' => 'Kitchener, ON'],
-            ['id' => 24, 'number' => '86', 'driver' => 'Pursley, Daison', 'city' => 'Lima, OH'],
-            ['id' => 25, 'number' => '19', 'driver' => 'Mann, Jett', 'city' => 'Findlay, OH'],
-            ['id' => 26, 'number' => '77E', 'driver' => 'VanEvery, Mike', 'city' => 'Brantford, ON'],
-            ['id' => 27, 'number' => '17', 'driver' => 'Horstman, Jared', 'city' => 'Cloverdale, OH'],
-            ['id' => 28, 'number' => '51', 'driver' => 'Haggenbottom, Mike', 'city' => 'London, ON'],
-            ['id' => 29, 'number' => '11H', 'driver' => 'Harmon, Caleb', 'city' => 'Lima, OH'],
-            ['id' => 30, 'number' => '67', 'driver' => 'Martens, Kevin', 'city' => 'Kitchener, ON'],
-            ['id' => 31, 'number' => '16B', 'driver' => 'Williams, Ty', 'city' => 'Dublin, OH'],
-            ['id' => 32, 'number' => '22', 'driver' => 'Shaffer, Aaron', 'city' => 'Springfield, OH'],
-        ];
+        $this->unassignedEntries = Entry::query()
+            ->where('event_id', $this->eventId)
+            ->where('race_class_id', $this->raceClassId)
+            ->orderBy('driver_name')
+            ->get()
+            ->map(fn (Entry $entry) => [
+                'id' => $entry->id,
+                'number' => $entry->car_number,
+                'driver' => $entry->driver_name,
+                'city' => $entry->city ?? '',
+            ])
+            ->values()
+            ->all();
 
         $this->initializeHeats();
     }
@@ -179,7 +161,11 @@ new class extends Component
         }
 
         $strategy = $script->resolveStrategy();
-        $allEntries = $strategy->order($allEntries, $script->config ?? []);
+        $config = array_merge($script->config ?? [], [
+            'event_id' => $this->eventId,
+            'race_class_id' => $this->raceClassId,
+        ]);
+        $allEntries = $strategy->order($allEntries, $config);
 
         $this->distributeIntoHeats($allEntries);
     }

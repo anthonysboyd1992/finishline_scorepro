@@ -20,5 +20,5 @@ $ctx = new \App\Support\RaceManagementContext(
     :raceTypes="$ctx->raceTypes()"
     :currentRaceType="$ctx->currentRaceTypeArray()"
 >
-    <livewire:race-management.lineup-manager :raceTypeLabel="$ctx->raceTypeLabel()" />
+    <livewire:race-management.lineup-manager :raceTypeLabel="$ctx->raceTypeLabel()" :eventId="$event->id" :raceClassId="$raceClass->id" />
 </x-layouts::module>

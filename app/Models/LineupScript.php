@@ -7,6 +7,7 @@ use App\LineupScripts\Invert;
 use App\LineupScripts\LineupStrategy;
 use App\LineupScripts\PillDraw;
 use App\LineupScripts\PointsStanding;
+use App\LineupScripts\QualifyingResults;
 use App\LineupScripts\QualifyingTime;
 use App\LineupScripts\Random;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,6 +26,7 @@ class LineupScript extends Model
     private const STRATEGIES = [
         'heats_by_group' => HeatsByGroup::class,
         'pill_draw' => PillDraw::class,
+        'qualifying_results' => QualifyingResults::class,
         'qualifying_time' => QualifyingTime::class,
         'points_standing' => PointsStanding::class,
         'invert' => Invert::class,

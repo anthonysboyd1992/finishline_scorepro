@@ -25,6 +25,8 @@ class DatabaseSeeder extends Seeder
             SanctionSeeder::class,
             RaceClassSeeder::class,
             EventSeeder::class,
+            EntrySeeder::class,
+            RaceResultSeeder::class,
             LineupScriptSeeder::class,
         ]);
     }

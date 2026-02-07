@@ -1,7 +1,9 @@
 <?php
 
+use App\Models\Entry;
 use App\Models\Event;
 use App\Models\RaceClass;
+use App\Models\RaceResult;
 use App\Models\Sanction;
 use App\Models\Track;
 
@@ -89,4 +91,55 @@ it('stores sanction type correctly', function () {
 
     expect($sanction->name)->toBe('NRA Sprint')
         ->and($sanction->type)->toBe('series');
+});
+
+it('creates an entry belonging to an event and race class', function () {
+    $entry = Entry::factory()->create();
+
+    expect($entry->event)->toBeInstanceOf(Event::class)
+        ->and($entry->raceClass)->toBeInstanceOf(RaceClass::class);
+});
+
+it('accesses entries from an event', function () {
+    $event = Event::factory()->create();
+    Entry::factory()->count(3)->for($event)->create();
+
+    expect($event->entries)->toHaveCount(3);
+});
+
+it('accesses entries from a race class', function () {
+    $raceClass = RaceClass::factory()->create();
+    Entry::factory()->count(2)->create(['race_class_id' => $raceClass->id]);
+
+    expect($raceClass->entries)->toHaveCount(2);
+});
+
+it('creates a race result belonging to an entry', function () {
+    $result = RaceResult::factory()->create();
+
+    expect($result->entry)->toBeInstanceOf(Entry::class);
+});
+
+it('accesses race results from an entry', function () {
+    $entry = Entry::factory()->create();
+    RaceResult::factory()->count(3)->for($entry)->create();
+
+    expect($entry->raceResults)->toHaveCount(3);
+});
+
+it('stores race result data correctly', function () {
+    $result = RaceResult::factory()->qualifying()->create([
+        'laps_completed' => 10,
+        'best_lap_time' => 15.234,
+        'total_time' => 160.500,
+        'finishing_position' => 3,
+        'points' => 91,
+    ]);
+
+    expect($result->race_type)->toBe('Qualifying')
+        ->and($result->laps_completed)->toBe(10)
+        ->and((float) $result->best_lap_time)->toBe(15.234)
+        ->and((float) $result->total_time)->toBe(160.500)
+        ->and($result->finishing_position)->toBe(3)
+        ->and($result->points)->toBe(91);
 });
