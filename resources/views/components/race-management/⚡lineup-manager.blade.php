@@ -393,8 +393,9 @@ new class extends Component
         if (this._dragGhost) { this._dragGhost.remove(); this._dragGhost = null; }
     },
 
-    onTouchStart(e, entryId) {
+    onTouchStart(e, entryId, label) {
         this.touchEntryId = entryId;
+        this._touchLabel = label || '#' + entryId;
         this.touchStartX = e.touches[0].clientX;
         this.touchStartY = e.touches[0].clientY;
         this.touchActive = false;
@@ -409,18 +410,15 @@ new class extends Component
         if (!this.touchActive && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
             this.touchActive = true;
             this.dragId = this.touchEntryId;
-            let el = e.target.closest('[draggable]');
-            if (el) {
-                let clone = el.cloneNode(true);
-                let rect = el.getBoundingClientRect();
-                clone.style.cssText = 'position:fixed;pointer-events:none;opacity:0.85;z-index:9999;width:' + rect.width + 'px;transition:none;';
-                clone.style.left = (touch.clientX - rect.width / 2) + 'px';
-                clone.style.top = (touch.clientY - 20) + 'px';
-                this.touchOffsetX = rect.width / 2;
-                this.touchOffsetY = 20;
-                document.body.appendChild(clone);
-                this.touchClone = clone;
-            }
+            let ghost = document.createElement('div');
+            ghost.textContent = this._touchLabel;
+            ghost.style.cssText = 'position:fixed;pointer-events:none;z-index:9999;padding:6px 14px;border-radius:6px;background:#0ea5e9;color:#fff;font-size:14px;font-weight:700;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+            ghost.style.left = (touch.clientX - 40) + 'px';
+            ghost.style.top = (touch.clientY - 20) + 'px';
+            this.touchOffsetX = 40;
+            this.touchOffsetY = 20;
+            document.body.appendChild(ghost);
+            this.touchClone = ghost;
         }
 
         if (this.touchActive) {
@@ -526,7 +524,7 @@ new class extends Component
                     draggable="true"
                     x-on:dragstart="startDrag($event, {{ $entry['id'] }}, '#{{ $entry['number'] }} {{ $entry['driver'] }}')"
                     x-on:dragend="endDrag()"
-                    x-on:touchstart="onTouchStart($event, {{ $entry['id'] }})"
+                    x-on:touchstart="onTouchStart($event, {{ $entry['id'] }}, '#{{ $entry['number'] }} {{ $entry['driver'] }}')"
                     x-on:touchmove="onTouchMove($event)"
                     x-on:touchend="onTouchEnd($event)"
                     wire:click="addEntryToActiveHeat({{ $entry['id'] }})"
@@ -612,7 +610,7 @@ new class extends Component
                                                 draggable="true"
                                                 x-on:dragstart="startDrag($event, {{ $insideEntry['id'] }}, '#{{ $insideEntry['number'] }}')"
                                                 x-on:dragend="endDrag()"
-                                                x-on:touchstart="onTouchStart($event, {{ $insideEntry['id'] }})"
+                                                x-on:touchstart="onTouchStart($event, {{ $insideEntry['id'] }}, '#{{ $insideEntry['number'] }}')"
                                                 x-on:touchmove="onTouchMove($event)"
                                                 x-on:touchend="onTouchEnd($event)"
                                                 class="group relative bg-white dark:bg-zinc-700 border-2 border-slate-200 dark:border-zinc-600 rounded-md px-1.5 py-1.5 cursor-grab active:cursor-grabbing hover:border-sky-400 hover:shadow-md transition-all h-full flex flex-col items-center justify-center text-center"
@@ -661,7 +659,7 @@ new class extends Component
                                                 draggable="true"
                                                 x-on:dragstart="startDrag($event, {{ $outsideEntry['id'] }}, '#{{ $outsideEntry['number'] }}')"
                                                 x-on:dragend="endDrag()"
-                                                x-on:touchstart="onTouchStart($event, {{ $outsideEntry['id'] }})"
+                                                x-on:touchstart="onTouchStart($event, {{ $outsideEntry['id'] }}, '#{{ $outsideEntry['number'] }}')"
                                                 x-on:touchmove="onTouchMove($event)"
                                                 x-on:touchend="onTouchEnd($event)"
                                                 class="group relative bg-white dark:bg-zinc-700 border-2 border-slate-200 dark:border-zinc-600 rounded-md px-1.5 py-1.5 cursor-grab active:cursor-grabbing hover:border-sky-400 hover:shadow-md transition-all h-full flex flex-col items-center justify-center text-center"
