@@ -1,15 +1,45 @@
 <?php
 
+use App\Models\Event;
+use App\Models\LineupScript;
+use App\Models\RaceClass;
+use App\Models\Sanction;
+use App\Models\Track;
 use App\Models\User;
+use Database\Seeders\LineupScriptSeeder;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->user = User::factory()->create();
+    $this->seed(LineupScriptSeeder::class);
+
+    $this->track = Track::factory()->create();
+    $this->sanction = Sanction::factory()->create();
+    $this->event = Event::factory()->for($this->track)->create();
+    $this->raceClass = RaceClass::factory()->create();
+    $this->event->sanctions()->attach($this->sanction);
+    $this->event->raceClasses()->attach($this->raceClass);
+    session(['current_sanction_id' => $this->sanction->id]);
 });
+
+/**
+ * Helper to get a script ID by slug and race type.
+ */
+function scriptId(string $slug, string $raceType = 'Heat'): int
+{
+    return LineupScript::query()
+        ->where('slug', $slug)
+        ->where('race_type', $raceType)
+        ->value('id');
+}
 
 it('renders the lineups page', function () {
     $this->actingAs($this->user)
-        ->get(route('race-management.lineups'))
+        ->get(route('race-management.lineups', [
+            'event' => $this->event,
+            'raceClass' => $this->raceClass,
+            'raceType' => 'heat',
+        ]))
         ->assertStatus(200)
         ->assertSee('Lineups')
         ->assertSee('Calculate Lineups');
@@ -35,8 +65,10 @@ it('mounts with unassigned entries and empty heats', function () {
 it('calculates lineups distributing entries into heats', function () {
     Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->assertCount('unassignedEntries', 0)
+        ->assertSet('showScriptPicker', false)
+        ->assertSet('lineupMethod', 'Heats By Group')
         ->assertSee('Heat 1')
         ->assertSee('Heat 2');
 });
@@ -44,7 +76,7 @@ it('calculates lineups distributing entries into heats', function () {
 it('clears lineups and returns entries to unassigned list with empty heats', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->assertCount('unassignedEntries', 0)
         ->call('clearLineups')
         ->assertCount('unassignedEntries', 32);
@@ -83,7 +115,7 @@ it('handles sort within entry list', function () {
 it('removes entry from heat back to unassigned list', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->assertCount('unassignedEntries', 0);
 
     // Remove entry with id 1 from the first heat (index 0)
@@ -95,7 +127,7 @@ it('removes entry from heat back to unassigned list', function () {
 it('drops entry from entry list into a heat', function () {
     Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->assertCount('unassignedEntries', 0)
         ->call('removeFromHeat', 0, 1) // move entry 1 back to unassigned
         ->assertCount('unassignedEntries', 1)
@@ -106,7 +138,7 @@ it('drops entry from entry list into a heat', function () {
 it('drops entry from heat to entry list', function () {
     Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->assertCount('unassignedEntries', 0)
         ->call('dropEntry', 1, 'entrylist')
         ->assertCount('unassignedEntries', 1);
@@ -115,7 +147,7 @@ it('drops entry from heat to entry list', function () {
 it('drops entry from one heat to another and grows the heat', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups');
+        ->call('selectScript', scriptId('heats_by_group'));
 
     $heats = $component->get('heats');
     $firstHeatCount = count($heats[0]['entries']);
@@ -132,7 +164,7 @@ it('drops entry from one heat to another and grows the heat', function () {
 it('drops entry at an exact position within a heat', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups');
+        ->call('selectScript', scriptId('heats_by_group'));
 
     // Move entry 1 back to unassigned, then drop it at position 2 in heat 0
     $component->call('dropEntry', 1, 'entrylist')
@@ -156,7 +188,7 @@ it('adds an empty heat', function () {
 it('removes the last heat and returns its entries to unassigned', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups');
+        ->call('selectScript', scriptId('heats_by_group'));
 
     $lastHeat = last($component->get('heats'));
     $entriesInLast = count($lastHeat['entries']);
@@ -191,7 +223,7 @@ it('drops entry directly into an empty heat', function () {
 it('grows a heat when dropping into a full heat instead of bumping', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups');
+        ->call('selectScript', scriptId('heats_by_group'));
 
     $heats = $component->get('heats');
     $originalCount = count($heats[0]['entries']); // 10
@@ -209,7 +241,7 @@ it('sets the active heat', function () {
     Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
         ->assertSet('activeHeat', 0)
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->call('setActiveHeat', 2)
         ->assertSet('activeHeat', 2);
 });
@@ -217,7 +249,7 @@ it('sets the active heat', function () {
 it('adds entry to active heat when clicked in the entry list', function () {
     $component = Livewire::actingAs($this->user)
         ->test('race-management.lineup-manager')
-        ->call('calculateLineups')
+        ->call('selectScript', scriptId('heats_by_group'))
         ->call('setActiveHeat', 1);
 
     $heat1Count = count($component->get('heats')[1]['entries']);
@@ -229,4 +261,131 @@ it('adds entry to active heat when clicked in the entry list', function () {
         ->assertCount('unassignedEntries', 0);
 
     expect($component->get('heats')[1]['entries'])->toHaveCount($heat1Count + 1);
+});
+
+it('shows the script picker filtered to the current race type', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->assertSet('showScriptPicker', false)
+        ->call('showScripts')
+        ->assertSet('showScriptPicker', true)
+        ->assertSee('Select Lineup Script')
+        ->assertSee('Heat Scripts')
+        ->assertSee('Heats By Group')
+        ->assertSee('Pill Draw')
+        ->assertSee('Random');
+});
+
+it('shows only scripts matching the selected race type', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager', ['raceTypeLabel' => 'Qualifying'])
+        ->call('showScripts')
+        ->assertSet('showScriptPicker', true)
+        ->assertSee('Qualifying Scripts')
+        ->assertSee('Random')
+        ->assertSee('Pill Draw')
+        ->assertSee('Points Standing')
+        ->assertDontSee('Heats By Group')
+        ->assertDontSee('Heat Scripts');
+});
+
+it('cancels the script picker and returns to heat cards', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->call('showScripts')
+        ->assertSet('showScriptPicker', true)
+        ->call('cancelScriptPicker')
+        ->assertSet('showScriptPicker', false)
+        ->assertDontSee('Select Lineup Script');
+
+    // Heats should be unchanged (still 4 empty heats)
+    expect($component->get('heats'))->toHaveCount(4);
+    expect($component->get('unassignedEntries'))->toHaveCount(32);
+});
+
+it('selects a script by id and calculates lineups', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->call('showScripts')
+        ->assertSet('showScriptPicker', true)
+        ->call('selectScript', scriptId('heats_by_group'))
+        ->assertSet('showScriptPicker', false)
+        ->assertSet('lineupMethod', 'Heats By Group')
+        ->assertCount('unassignedEntries', 0);
+});
+
+it('selects the random script and distributes entries', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->call('selectScript', scriptId('random'))
+        ->assertSet('showScriptPicker', false)
+        ->assertSet('lineupMethod', 'Random')
+        ->assertCount('unassignedEntries', 0);
+
+    // All entries should be distributed
+    $totalInHeats = 0;
+    foreach ($component->get('heats') as $heat) {
+        $totalInHeats += count($heat['entries']);
+    }
+    expect($totalInHeats)->toBe(32);
+});
+
+it('ignores an invalid script id', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->call('selectScript', 99999)
+        ->assertSet('showScriptPicker', false)
+        ->assertSet('lineupMethod', '')
+        ->assertCount('unassignedEntries', 32);
+});
+
+it('defaults to Heat as the race type label', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->assertSet('raceTypeLabel', 'Heat')
+        ->assertSee('Heat 1')
+        ->assertSee('Heat 4');
+});
+
+it('mounts with a custom race type label', function () {
+    Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager', ['raceTypeLabel' => 'Hotlaps'])
+        ->assertSet('raceTypeLabel', 'Hotlaps')
+        ->assertSee('Hotlaps 1')
+        ->assertSee('Hotlaps 4')
+        ->assertDontSee('Heat 1');
+});
+
+it('renames heats when race-type-selected event is dispatched', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager')
+        ->assertSee('Heat 1')
+        ->dispatch('race-type-selected', label: 'Qualifying')
+        ->assertSet('raceTypeLabel', 'Qualifying')
+        ->assertSee('Qualifying 1')
+        ->assertSee('Qualifying 4')
+        ->assertDontSee('Heat 1');
+
+    $heats = $component->get('heats');
+    expect($heats[0]['name'])->toBe('Qualifying 1');
+    expect($heats[3]['name'])->toBe('Qualifying 4');
+});
+
+it('uses the current race type label when adding a heat', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager', ['raceTypeLabel' => 'Dash'])
+        ->call('addHeat');
+
+    $heats = $component->get('heats');
+    expect($heats[4]['name'])->toBe('Dash 5');
+});
+
+it('uses the current race type label when calculating lineups', function () {
+    $component = Livewire::actingAs($this->user)
+        ->test('race-management.lineup-manager', ['raceTypeLabel' => 'A-Feature'])
+        ->call('selectScript', scriptId('heats_by_group'))
+        ->assertSee('A-Feature 1');
+
+    $heats = $component->get('heats');
+    expect($heats[0]['name'])->toBe('A-Feature 1');
 });

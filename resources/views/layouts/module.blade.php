@@ -11,6 +11,8 @@
     'currentEvent' => null,
     'classes' => [],
     'currentClass' => null,
+    'raceTypes' => [],
+    'currentRaceType' => null,
 ])
 
 <!DOCTYPE html>
@@ -37,7 +39,7 @@
 
                 <div class="h-6 w-px bg-white/20 hidden sm:block"></div>
 
-                @include('partials.sanctions-dropdown', ['sanctions' => $sanctions, 'currentSanction' => $currentSanction])
+                @include('partials.sanctions-dropdown')
             </div>
             
             <div class="flex items-center gap-3">
@@ -175,7 +177,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
                     <div class="flex-1 min-w-0 text-left">
-                        <p class="text-sm font-semibold truncate">{{ $currentClass['name'] ?? 'All Classes' }}</p>
+                        <p class="text-sm font-semibold truncate">{{ $currentClass['name'] ?? 'Select Class' }}</p>
                     </div>
                     <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -191,23 +193,8 @@
                 >
                     <div class="p-2">
                         <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                            Filter by Class
+                            Select Class
                         </div>
-                        <!-- All Classes option -->
-                        <a 
-                            href="#"
-                            class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ is_null($currentClass) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
-                        >
-                            <svg class="w-5 h-5 shrink-0 {{ is_null($currentClass) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                            </svg>
-                            <span class="font-medium">All Classes</span>
-                            @if(is_null($currentClass))
-                                <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                </svg>
-                            @endif
-                        </a>
                         @foreach($classes as $class)
                             <a 
                                 href="{{ $class['href'] ?? '#' }}"
@@ -228,6 +215,61 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Race Type Selector -->
+            @if(count($raceTypes) > 0)
+            <div 
+                x-data="{ open: false }" 
+                @keydown.escape.window="open = false"
+                class="relative"
+            >
+                <button 
+                    @click="open = !open" 
+                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-white hover:bg-slate-50 dark:bg-zinc-200 dark:hover:bg-white text-zinc-900 border border-slate-300 dark:border-zinc-400 transition-colors min-w-[180px]"
+                >
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                    </svg>
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-sm font-semibold truncate">{{ $currentRaceType['name'] ?? 'Select Race Type' }}</p>
+                    </div>
+                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div 
+                    x-show="open" 
+                    @click.away="open = false"
+                    x-transition
+                    x-cloak
+                    class="absolute left-0 mt-2 w-64 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
+                >
+                    <div class="p-2">
+                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                            Select Race Type
+                        </div>
+                        @foreach($raceTypes as $raceType)
+                            <a 
+                                href="{{ $raceType['href'] ?? '#' }}"
+                                wire:navigate
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                            >
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
+                                </svg>
+                                <span class="font-medium truncate">{{ $raceType['name'] ?? '' }}</span>
+                                @if(($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null))
+                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                    </svg>
+                                @endif
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- Entry count badge -->
             @if(isset($entryCount))

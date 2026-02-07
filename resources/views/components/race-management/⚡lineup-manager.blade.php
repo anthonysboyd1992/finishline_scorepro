@@ -1,7 +1,9 @@
 <?php
 
-use Livewire\Component;
+use App\Models\LineupScript;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
+use Livewire\Component;
 
 new class extends Component
 {
@@ -12,12 +14,14 @@ new class extends Component
     public array $heats = [];
 
     public string $filter = '';
-    public string $lineupMethod = 'Heats By Group';
+    public string $lineupMethod = '';
     public int $rowCount = 5;
     public int $lineupsPerRow = 3;
     public string $entryNumberInput = '';
     public int $activeHeat = 0;
     public int $heatCount = 4;
+    public bool $showScriptPicker = false;
+    public string $raceTypeLabel = 'Heat';
 
     public function mount(): void
     {
@@ -69,7 +73,7 @@ new class extends Component
         for ($h = 0; $h < $this->heatCount; $h++) {
             $this->heats[] = [
                 'id' => $h + 1,
-                'name' => 'Heat ' . ($h + 1),
+                'name' => $this->raceTypeLabel . ' ' . ($h + 1),
                 'entries' => [],
             ];
         }
@@ -83,7 +87,7 @@ new class extends Component
         $nextId = count($this->heats) + 1;
         $this->heats[] = [
             'id' => $nextId,
-            'name' => 'Heat ' . $nextId,
+            'name' => $this->raceTypeLabel . ' ' . $nextId,
             'entries' => [],
         ];
         $this->heatCount = count($this->heats);
@@ -114,13 +118,81 @@ new class extends Component
     }
 
     /**
-     * Calculate lineups by distributing entries across heats.
+     * Show the lineup script picker in the main content area.
      */
-    public function calculateLineups(): void
+    public function showScripts(): void
+    {
+        $this->showScriptPicker = true;
+    }
+
+    /**
+     * Cancel the script picker and return to heat cards.
+     */
+    public function cancelScriptPicker(): void
+    {
+        $this->showScriptPicker = false;
+    }
+
+    /**
+     * Update the race type label and rename all existing heats.
+     */
+    #[On('race-type-selected')]
+    public function onRaceTypeSelected(string $label): void
+    {
+        $this->raceTypeLabel = $label;
+
+        foreach ($this->heats as $index => &$heat) {
+            $heat['name'] = $label . ' ' . ($index + 1);
+        }
+
+        unset($heat);
+        unset($this->lineupScripts);
+
+        $this->showScriptPicker = false;
+    }
+
+    /**
+     * Select a lineup script, run its calculation, and close the picker.
+     */
+    public function selectScript(int $scriptId): void
+    {
+        $script = LineupScript::query()->where('id', $scriptId)->where('is_active', true)->first();
+
+        if (! $script) {
+            return;
+        }
+
+        $this->lineupMethod = $script->name;
+        $this->calculateLineups($script);
+        $this->showScriptPicker = false;
+    }
+
+    /**
+     * Calculate lineups using the script's strategy to order entries, then distribute into heats.
+     */
+    private function calculateLineups(LineupScript $script): void
+    {
+        $allEntries = $this->gatherAllEntries();
+
+        if (count($allEntries) === 0) {
+            return;
+        }
+
+        $strategy = $script->resolveStrategy();
+        $allEntries = $strategy->order($allEntries, $script->config ?? []);
+
+        $this->distributeIntoHeats($allEntries);
+    }
+
+    /**
+     * Gather all entries from unassigned list and existing heats.
+     *
+     * @return array<int, array{id: int, number: string, driver: string, city: string}>
+     */
+    private function gatherAllEntries(): array
     {
         $allEntries = $this->unassignedEntries;
 
-        // Also gather entries already in heats
         foreach ($this->heats as $heat) {
             foreach ($heat['entries'] as $entry) {
                 if ($entry !== null) {
@@ -129,15 +201,20 @@ new class extends Component
             }
         }
 
+        return $allEntries;
+    }
+
+    /**
+     * Distribute entries evenly across heats.
+     *
+     * @param  array<int, array{id: int, number: string, driver: string, city: string}>  $entries
+     */
+    private function distributeIntoHeats(array $entries): void
+    {
         $positionsPerHeat = $this->rowCount * 2;
-        $totalEntries = count($allEntries);
-        $heatCount = (int) ceil($totalEntries / $positionsPerHeat);
+        $totalEntries = count($entries);
+        $heatCount = max(count($this->heats), (int) ceil($totalEntries / $positionsPerHeat));
 
-        if ($heatCount === 0) {
-            return;
-        }
-
-        // Distribute entries across heats
         $this->heats = [];
         $entryIndex = 0;
 
@@ -146,19 +223,20 @@ new class extends Component
 
             for ($p = 0; $p < $positionsPerHeat; $p++) {
                 if ($entryIndex < $totalEntries) {
-                    $heatEntries[] = $allEntries[$entryIndex];
+                    $heatEntries[] = $entries[$entryIndex];
                     $entryIndex++;
                 }
             }
 
             $this->heats[] = [
                 'id' => $h + 1,
-                'name' => 'Heat ' . ($h + 1),
+                'name' => $this->raceTypeLabel . ' ' . ($h + 1),
                 'entries' => $heatEntries,
             ];
         }
 
         $this->unassignedEntries = [];
+        $this->heatCount = count($this->heats);
     }
 
     /**
@@ -314,6 +392,19 @@ new class extends Component
         $this->activeHeat = 0;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Collection<int, LineupScript>
+     */
+    #[Computed]
+    public function lineupScripts(): \Illuminate\Database\Eloquent\Collection
+    {
+        return LineupScript::query()
+            ->where('is_active', true)
+            ->where('race_type', $this->raceTypeLabel)
+            ->orderBy('sort_order')
+            ->get();
+    }
+
     #[Computed]
     public function filteredEntries(): array
     {
@@ -466,7 +557,7 @@ new class extends Component
         <!-- Toolbar -->
         <div class="p-3 border-b border-slate-200 dark:border-zinc-700 space-y-2">
             <button
-                wire:click="calculateLineups"
+                wire:click="showScripts"
                 class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors data-loading:opacity-50"
             >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -489,10 +580,10 @@ new class extends Component
             @endif
         </div>
 
-        @if(count($heats) > 0)
+        @if($lineupMethod)
         <div class="px-3 py-2 bg-slate-50 dark:bg-zinc-700/50 border-b border-slate-200 dark:border-zinc-700">
             <p class="text-xs text-slate-500 dark:text-slate-400 text-center">
-                Using Lineup: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $lineupMethod }}</span>
+                Using: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ $lineupMethod }}</span>
             </p>
         </div>
         @endif
@@ -546,8 +637,68 @@ new class extends Component
         </div>
     </div>
 
-    <!-- Main Content - Heat Cards -->
+    <!-- Main Content Area -->
     <div class="flex-1 flex flex-col bg-slate-100 dark:bg-zinc-900 min-h-0">
+        @if($showScriptPicker)
+        <!-- Script Picker View -->
+        <div class="flex-1 overflow-y-auto p-5">
+            <div class="max-w-3xl mx-auto">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 dark:text-white">Select Lineup Script</h2>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Choose a method to calculate {{ strtolower($raceTypeLabel) }} lineups</p>
+                    </div>
+                    <button
+                        wire:click="cancelScriptPicker"
+                        class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-600 rounded-lg hover:bg-slate-50 dark:hover:bg-zinc-700 transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                        </svg>
+                        Back
+                    </button>
+                </div>
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">{{ $raceTypeLabel }} Scripts</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            @foreach($this->lineupScripts as $script)
+                                    <button
+                                        wire:click="selectScript({{ $script->id }})"
+                                        class="group flex items-start gap-4 p-5 bg-white dark:bg-zinc-800 border-2 border-slate-200 dark:border-zinc-700 rounded-xl text-left hover:border-emerald-500 hover:shadow-lg dark:hover:border-emerald-500 transition-all"
+                                    >
+                                        <div class="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center bg-slate-100 dark:bg-zinc-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
+                                            @if($script->icon === 'grid')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                                            @elseif($script->icon === 'shuffle')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                                            @elseif($script->icon === 'clock')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            @elseif($script->icon === 'trophy')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
+                                            @elseif($script->icon === 'arrows')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>
+                                            @elseif($script->icon === 'dice')
+                                                <svg class="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">{{ $script->name }}</h3>
+                                            <p class="text-sm text-slate-500 dark:text-slate-400 mt-0.5">{{ $script->description }}</p>
+                                        </div>
+                                        <svg class="w-5 h-5 shrink-0 text-slate-300 dark:text-zinc-600 group-hover:text-emerald-500 transition-colors mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @else
+        <!-- Heat Cards -->
         <div class="flex-1 overflow-y-auto p-5">
                 <div class="grid gap-5" style="grid-template-columns: repeat({{ $lineupsPerRow }}, minmax(0, 1fr))">
                     @foreach($heats as $heatIndex => $heat)
@@ -580,7 +731,8 @@ new class extends Component
                             <!-- Heat Rows -->
                             @php
                                 $entries = $heat['entries'];
-                                $displayRows = max($rowCount, (int) ceil(count($entries) / 2));
+                                $neededRows = count($entries) > 0 ? (int) ceil(count($entries) / 2) + 1 : 0;
+                                $displayRows = max($rowCount, $neededRows);
                             @endphp
                             @for($row = 0; $row < $displayRows; $row++)
                                 @php
@@ -733,7 +885,7 @@ new class extends Component
             </div>
 
             <div class="flex items-center gap-1.5">
-                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">Heats:</span>
+                <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{{ $raceTypeLabel }}s:</span>
                 <button
                     wire:click="removeHeat"
                     class="w-7 h-7 flex items-center justify-center rounded-md border border-slate-300 dark:border-zinc-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors text-sm font-bold {{ count($heats) < 2 ? 'opacity-40 cursor-not-allowed' : '' }}"
@@ -750,8 +902,9 @@ new class extends Component
                 <span>{{ count($unassignedEntries) }} unassigned</span>
                 <span class="text-slate-300 dark:text-zinc-600">|</span>
                 @php $totalAssigned = 0; foreach ($heats as $h) { $totalAssigned += count($h['entries']); } @endphp
-                <span>{{ $totalAssigned }} in heats</span>
+                <span>{{ $totalAssigned }} in {{ strtolower($raceTypeLabel) }}s</span>
             </div>
         </div>
+        @endif
     </div>
 </div>
