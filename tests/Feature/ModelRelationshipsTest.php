@@ -1,10 +1,13 @@
 <?php
 
+use App\Models\Competitor;
 use App\Models\Entry;
 use App\Models\Event;
 use App\Models\RaceClass;
 use App\Models\RaceResult;
 use App\Models\Sanction;
+use App\Models\Schedule;
+use App\Models\Season;
 use App\Models\Track;
 
 it('creates a track with events', function () {
@@ -142,4 +145,138 @@ it('stores race result data correctly', function () {
         ->and((float) $result->total_time)->toBe(160.500)
         ->and($result->finishing_position)->toBe(3)
         ->and($result->points)->toBe(91);
+});
+
+// --- Season relationship tests ---
+
+it('creates a season belonging to a sanction', function () {
+    $season = Season::factory()->create();
+
+    expect($season->sanction)->toBeInstanceOf(Sanction::class);
+});
+
+it('accesses seasons from a sanction', function () {
+    $sanction = Sanction::factory()->create();
+    Season::factory()->for($sanction)->create(['year' => 2024]);
+    Season::factory()->for($sanction)->create(['year' => 2025]);
+    Season::factory()->for($sanction)->create(['year' => 2026]);
+
+    expect($sanction->seasons)->toHaveCount(3);
+});
+
+it('marks a season as active', function () {
+    $season = Season::factory()->active()->create();
+
+    expect($season->is_active)->toBeTrue();
+});
+
+// --- Schedule relationship tests ---
+
+it('creates a schedule belonging to a season', function () {
+    $schedule = Schedule::factory()->create();
+
+    expect($schedule->season)->toBeInstanceOf(Season::class);
+});
+
+it('accesses schedules from a season', function () {
+    $season = Season::factory()->create();
+    Schedule::factory()->count(2)->for($season)->create();
+
+    expect($season->schedules)->toHaveCount(2);
+});
+
+it('attaches events to a schedule via pivot', function () {
+    $schedule = Schedule::factory()->create();
+    $events = Event::factory()->count(3)->create();
+
+    $schedule->events()->attach($events);
+
+    expect($schedule->events)->toHaveCount(3);
+});
+
+it('accesses schedules from an event', function () {
+    $event = Event::factory()->create();
+    $schedules = Schedule::factory()->count(2)->create();
+
+    $event->schedules()->attach($schedules);
+
+    expect($event->schedules)->toHaveCount(2);
+});
+
+// --- Competitor relationship tests ---
+
+it('creates a competitor with all fields', function () {
+    $competitor = Competitor::factory()->create([
+        'first_name' => 'John',
+        'last_name' => 'Doe',
+        'car_number' => '42',
+        'city' => 'Lima',
+        'state' => 'OH',
+        'country' => 'US',
+    ]);
+
+    expect($competitor->first_name)->toBe('John')
+        ->and($competitor->last_name)->toBe('Doe')
+        ->and($competitor->car_number)->toBe('42')
+        ->and($competitor->fullName())->toBe('John Doe')
+        ->and($competitor->displayName())->toBe('Doe, John');
+});
+
+it('accesses entries from a competitor', function () {
+    $competitor = Competitor::factory()->create();
+    Entry::factory()->count(3)->create(['competitor_id' => $competitor->id]);
+
+    expect($competitor->entries)->toHaveCount(3);
+});
+
+it('creates an entry linked to a competitor', function () {
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create(['competitor_id' => $competitor->id]);
+
+    expect($entry->competitor)->toBeInstanceOf(Competitor::class)
+        ->and($entry->competitor->id)->toBe($competitor->id);
+});
+
+it('stores pill number on an entry', function () {
+    $entry = Entry::factory()->create(['pill_number' => 7]);
+
+    expect($entry->pill_number)->toBe(7);
+});
+
+// --- Event displayName() ---
+
+it('shows name and date when both are set', function () {
+    $event = Event::factory()->create([
+        'name' => 'Spring Classic',
+        'event_date' => '2026-06-15',
+    ]);
+
+    expect($event->displayName())->toBe('Spring Classic - Jun 15, 2026');
+});
+
+it('shows date only when name is null', function () {
+    $event = Event::factory()->create([
+        'name' => null,
+        'event_date' => '2026-06-15',
+    ]);
+
+    expect($event->displayName())->toBe('Jun 15, 2026');
+});
+
+// --- Full chain: Sanction -> Season -> Schedule -> Event ---
+
+it('traverses the full sanction to event chain', function () {
+    $sanction = Sanction::factory()->create();
+    $season = Season::factory()->for($sanction)->active()->create(['year' => 2026]);
+    $schedule = Schedule::factory()->for($season)->create(['year' => 2026]);
+    $event = Event::factory()->create();
+    $schedule->events()->attach($event);
+
+    $loadedSeason = $sanction->seasons()->where('is_active', true)->first();
+    $loadedSchedule = $loadedSeason->schedules()->first();
+    $loadedEvent = $loadedSchedule->events()->first();
+
+    expect($loadedSeason->id)->toBe($season->id)
+        ->and($loadedSchedule->id)->toBe($schedule->id)
+        ->and($loadedEvent->id)->toBe($event->id);
 });

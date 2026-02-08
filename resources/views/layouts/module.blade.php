@@ -7,6 +7,8 @@
     'sanctions' => [],
     'currentSanction' => null,
     'showContextBar' => false,
+    'seasons' => [],
+    'currentSeason' => null,
     'events' => [],
     'currentEvent' => null,
     'classes' => [],
@@ -43,8 +45,6 @@
             </div>
             
             <div class="flex items-center gap-3">
-                @include('partials.dark-mode-toggle')
-
                 <!-- User Menu -->
                 <div 
                     x-data="{ open: false }" 
@@ -101,8 +101,66 @@
         </header>
 
         @if($showContextBar)
-        <!-- Context Selection Bar (Event & Class) -->
-        <div class="flex items-center gap-3 bg-slate-200 dark:bg-zinc-600 px-4 py-2 shrink-0">
+        <!-- Context Selection Bar (Season, Event & Class) -->
+        <div class="flex items-stretch h-12 bg-zinc-700 shrink-0 border-b border-zinc-600">
+            <!-- Season Selector -->
+            @if(count($seasons) > 0)
+            <div
+                x-data="{ open: false }"
+                @keydown.escape.window="open = false"
+                class="relative shrink-0"
+            >
+                <button
+                    @click="open = !open"
+                    class="flex items-center gap-2 px-4 h-full bg-zinc-700 hover:bg-zinc-600 text-zinc-100 transition-colors min-w-[160px] border-r border-zinc-600"
+                >
+                    <svg class="w-5 h-5 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <div class="flex-1 min-w-0 text-left">
+                        <p class="text-sm font-semibold truncate">{{ $currentSeason['name'] ?? 'Select Season' }}</p>
+                    </div>
+                    <svg class="w-4 h-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <div
+                    x-show="open"
+                    @click.away="open = false"
+                    x-transition
+                    x-cloak
+                    class="absolute left-0 mt-0 w-64 origin-top-left rounded-b-lg bg-zinc-800 shadow-xl ring-1 ring-white/10 z-50 max-h-80 overflow-y-auto"
+                >
+                    <div class="p-2">
+                        <div class="px-3 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                            Select Season
+                        </div>
+                        @foreach($seasons as $season)
+                            <form method="POST" action="{{ route('season.switch', $season['id']) }}">
+                                @csrf
+                                <button
+                                    type="submit"
+                                    class="flex w-full items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentSeason['id'] ?? null) === ($season['id'] ?? null) ? 'bg-zinc-600 text-white' : 'text-zinc-300 hover:bg-zinc-700' }}"
+                                >
+                                    <span class="font-medium truncate">{{ $season['name'] ?? '' }}</span>
+                                    @if($season['isActive'] ?? false)
+                                        <span class="px-1.5 py-0.5 bg-green-900/30 text-green-400 text-[10px] font-medium rounded-full ml-auto shrink-0">Active</span>
+                                    @endif
+                                    @if(($currentSeason['id'] ?? null) === ($season['id'] ?? null))
+                                        <svg class="w-5 h-5 text-blue-400 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        </svg>
+                                    @endif
+                                </button>
+                            </form>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
+
+            @if(count($events) > 0)
             <!-- Event Selector -->
             <div 
                 x-data="{ open: false }" 
@@ -111,15 +169,15 @@
             >
                 <button 
                     @click="open = !open" 
-                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-zinc-900 hover:bg-black text-white transition-colors min-w-[200px]"
+                    class="flex items-center gap-2 px-4 h-full bg-zinc-700 hover:bg-zinc-600 text-zinc-100 transition-colors min-w-[220px] border-r border-zinc-600"
                 >
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <div class="flex-1 min-w-0 text-left">
                         <p class="text-sm font-semibold truncate">{{ $currentEvent['name'] ?? 'Select Event' }}</p>
                     </div>
-                    <svg class="w-4 h-4 shrink-0 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -129,36 +187,34 @@
                     @click.away="open = false"
                     x-transition
                     x-cloak
-                    class="absolute left-0 mt-2 w-72 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
+                    class="absolute left-0 mt-0 w-72 origin-top-left rounded-b-lg bg-zinc-800 shadow-xl ring-1 ring-white/10 z-50 max-h-80 overflow-y-auto"
                 >
                     <div class="p-2">
-                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <div class="px-3 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Select Event
                         </div>
-                        @forelse($events as $event)
+                        @foreach($events as $event)
                             <a 
                                 href="{{ $event['href'] ?? '#' }}"
                                 @if($event['wire'] ?? false) wire:navigate @endif
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'bg-zinc-600 text-white' : 'text-zinc-300 hover:bg-zinc-700' }}"
                             >
-                                <svg class="w-5 h-5 shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentEvent['id'] ?? null) === ($event['id'] ?? null) ? 'text-white' : 'text-zinc-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                 </svg>
                                 <div class="flex-1 min-w-0">
                                     <p class="font-medium truncate">{{ $event['name'] ?? '' }}</p>
                                     @if(isset($event['date']))
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $event['date'] }}</p>
+                                        <p class="text-xs text-zinc-400">{{ $event['date'] }}</p>
                                     @endif
                                 </div>
                                 @if(($currentEvent['id'] ?? null) === ($event['id'] ?? null))
-                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-blue-400 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
                             </a>
-                        @empty
-                            <p class="px-3 py-2 text-sm text-slate-500 dark:text-slate-400">No events available</p>
-                        @endforelse
+                        @endforeach
                     </div>
                 </div>
             </div>
@@ -171,15 +227,15 @@
             >
                 <button 
                     @click="open = !open" 
-                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-white hover:bg-slate-50 dark:bg-zinc-200 dark:hover:bg-white text-zinc-900 border border-slate-300 dark:border-zinc-400 transition-colors min-w-[180px]"
+                    class="flex items-center gap-2 px-4 h-full bg-zinc-700 hover:bg-zinc-600 text-zinc-100 transition-colors min-w-[180px] border-r border-zinc-600"
                 >
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
                     <div class="flex-1 min-w-0 text-left">
                         <p class="text-sm font-semibold truncate">{{ $currentClass['name'] ?? 'Select Class' }}</p>
                     </div>
-                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -189,24 +245,24 @@
                     @click.away="open = false"
                     x-transition
                     x-cloak
-                    class="absolute left-0 mt-2 w-64 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
+                    class="absolute left-0 mt-0 w-64 origin-top-left rounded-b-lg bg-zinc-800 shadow-xl ring-1 ring-white/10 z-50 max-h-80 overflow-y-auto"
                 >
                     <div class="p-2">
-                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <div class="px-3 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Select Class
                         </div>
                         @foreach($classes as $class)
                             <a 
                                 href="{{ $class['href'] ?? '#' }}"
                                 @if($class['wire'] ?? false) wire:navigate @endif
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'bg-zinc-600 text-white' : 'text-zinc-300 hover:bg-zinc-700' }}"
                             >
-                                <svg class="w-5 h-5 shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentClass['id'] ?? null) === ($class['id'] ?? null) ? 'text-white' : 'text-zinc-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                                 </svg>
                                 <span class="font-medium truncate">{{ $class['name'] ?? '' }}</span>
                                 @if(($currentClass['id'] ?? null) === ($class['id'] ?? null))
-                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-blue-400 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
@@ -225,15 +281,15 @@
             >
                 <button 
                     @click="open = !open" 
-                    class="flex items-center gap-2 rounded-lg px-3 py-2 bg-white hover:bg-slate-50 dark:bg-zinc-200 dark:hover:bg-white text-zinc-900 border border-slate-300 dark:border-zinc-400 transition-colors min-w-[180px]"
+                    class="flex items-center gap-2 px-4 h-full bg-zinc-700 hover:bg-zinc-600 text-zinc-100 transition-colors min-w-[180px] border-r border-zinc-600"
                 >
-                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                     </svg>
                     <div class="flex-1 min-w-0 text-left">
                         <p class="text-sm font-semibold truncate">{{ $currentRaceType['name'] ?? 'Select Race Type' }}</p>
                     </div>
-                    <svg class="w-4 h-4 shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 shrink-0 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
@@ -243,24 +299,24 @@
                     @click.away="open = false"
                     x-transition
                     x-cloak
-                    class="absolute left-0 mt-2 w-64 origin-top-left rounded-lg bg-white dark:bg-zinc-800 shadow-xl ring-1 ring-black/5 dark:ring-white/10 z-50 max-h-80 overflow-y-auto"
+                    class="absolute left-0 mt-0 w-64 origin-top-left rounded-b-lg bg-zinc-800 shadow-xl ring-1 ring-white/10 z-50 max-h-80 overflow-y-auto"
                 >
                     <div class="p-2">
-                        <div class="px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                        <div class="px-3 py-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
                             Select Race Type
                         </div>
                         @foreach($raceTypes as $raceType)
                             <a 
                                 href="{{ $raceType['href'] ?? '#' }}"
                                 wire:navigate
-                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'bg-zinc-100 dark:bg-zinc-700 text-zinc-900 dark:text-white' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700' }}"
+                                class="flex items-center gap-3 px-3 py-2.5 rounded-md transition-colors {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'bg-zinc-600 text-white' : 'text-zinc-300 hover:bg-zinc-700' }}"
                             >
-                                <svg class="w-5 h-5 shrink-0 {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'text-zinc-900 dark:text-white' : 'text-slate-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 shrink-0 {{ ($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null) ? 'text-white' : 'text-zinc-500' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
                                 </svg>
                                 <span class="font-medium truncate">{{ $raceType['name'] ?? '' }}</span>
                                 @if(($currentRaceType['id'] ?? null) === ($raceType['id'] ?? null))
-                                    <svg class="w-5 h-5 text-zinc-900 dark:text-white shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                                    <svg class="w-5 h-5 text-blue-400 shrink-0 ml-auto" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                                     </svg>
                                 @endif
@@ -270,12 +326,18 @@
                 </div>
             </div>
             @endif
+            @else
+            {{-- No events available --}}
+            <div class="flex items-center px-4 h-full">
+                <p class="text-sm text-zinc-400">No events for this season</p>
+            </div>
+            @endif
 
             <!-- Entry count badge -->
             @if(isset($entryCount))
-            <div class="ml-auto flex items-center gap-2">
-                <span class="text-xs text-slate-600 dark:text-slate-300">Entries:</span>
-                <span class="px-2.5 py-1 bg-zinc-900 dark:bg-white rounded-md text-sm font-bold text-white dark:text-zinc-900">{{ $entryCount }}</span>
+            <div class="ml-auto flex items-center gap-2 px-4">
+                <span class="text-xs text-zinc-400">Entries:</span>
+                <span class="px-2.5 py-1 bg-white rounded-md text-sm font-bold text-zinc-900">{{ $entryCount }}</span>
             </div>
             @endif
         </div>
@@ -283,14 +345,14 @@
 
         <!-- Main Content Area -->
         <div class="flex flex-1 overflow-hidden min-h-0">
-            <!-- Red Sidebar Navigation -->
-            <nav class="flex w-20 md:w-28 flex-col bg-[#c73e3e] text-white shrink-0">
+            <!-- Sidebar Navigation -->
+            <nav class="flex w-20 md:w-28 flex-col bg-zinc-800 text-white shrink-0 border-r border-zinc-700">
                 <div class="flex-1 overflow-y-auto py-2">
                     @foreach($sidebarItems as $item)
                         <a 
                             href="{{ $item['href'] ?? '#' }}"
                             @if($item['wire'] ?? false) wire:navigate @endif
-                            class="flex flex-col items-center justify-center px-2 py-3 md:py-4 text-center transition-colors hover:bg-[#b53636] {{ ($currentItem === ($item['key'] ?? '')) ? 'bg-[#a52f2f]' : '' }}"
+                            class="flex flex-col items-center justify-center px-2 py-3 md:py-4 text-center transition-colors hover:bg-zinc-700 {{ ($currentItem === ($item['key'] ?? '')) ? 'bg-zinc-700 border-l-2 border-l-blue-500' : '' }}"
                         >
                             <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
                                 {!! $item['icon'] ?? '' !!}

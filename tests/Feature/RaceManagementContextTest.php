@@ -69,7 +69,7 @@ it('generates correct event dropdown data', function () {
 
     expect($dropdown)->toHaveCount(1)
         ->and($dropdown[0]['id'])->toBe($this->event->id)
-        ->and($dropdown[0]['name'])->toBe($this->event->name)
+        ->and($dropdown[0]['name'])->toBe($this->event->displayName())
         ->and($dropdown[0]['wire'])->toBeTrue();
 });
 

@@ -66,7 +66,7 @@ $sidebarItems = [
         <div class="p-3 border-t border-slate-200 dark:border-zinc-700">
             <button 
                 type="button"
-                class="flex w-full items-center justify-center gap-2 rounded-md bg-[#c73e3e] px-4 py-3 text-sm font-medium text-white hover:bg-[#b53636] transition-colors"
+                class="flex w-full items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
             >
                 {{ __('Add Transponder') }}
             </button>

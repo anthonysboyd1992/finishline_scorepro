@@ -50,10 +50,45 @@ class Event extends Model
     }
 
     /**
+     * @return BelongsToMany<Schedule, $this>
+     */
+    public function schedules(): BelongsToMany
+    {
+        return $this->belongsToMany(Schedule::class);
+    }
+
+    /**
      * @return HasMany<Entry, $this>
      */
     public function entries(): HasMany
     {
         return $this->hasMany(Entry::class);
+    }
+
+    /**
+     * Get a human-readable display name for this event.
+     *
+     * If name and date are both set, returns "Name - Jan 1, 2026".
+     * If only name is set, returns the name.
+     * If only date is set, returns the formatted date.
+     */
+    public function displayName(): string
+    {
+        $hasName = filled($this->name);
+        $hasDate = $this->event_date !== null;
+
+        if ($hasName && $hasDate) {
+            return $this->name.' - '.$this->event_date->format('M j, Y');
+        }
+
+        if ($hasName) {
+            return $this->name;
+        }
+
+        if ($hasDate) {
+            return $this->event_date->format('M j, Y');
+        }
+
+        return 'Untitled Event';
     }
 }

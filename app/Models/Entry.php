@@ -12,12 +12,24 @@ class Entry extends Model
     use HasFactory;
 
     protected $fillable = [
+        'competitor_id',
         'event_id',
         'race_class_id',
         'car_number',
+        'pill_number',
+        'transponder',
+        'owner',
         'driver_name',
         'city',
     ];
+
+    /**
+     * @return BelongsTo<Competitor, $this>
+     */
+    public function competitor(): BelongsTo
+    {
+        return $this->belongsTo(Competitor::class);
+    }
 
     /**
      * @return BelongsTo<Event, $this>

@@ -5,17 +5,23 @@ namespace App\Support;
 use App\Models\Event;
 use App\Models\RaceClass;
 use App\Models\Sanction;
+use App\Models\Season;
 use Illuminate\Support\Collection;
 
 class RaceManagementContext
 {
     public readonly Sanction $sanction;
 
+    public readonly Season $season;
+
     /** @var Collection<int, Event> */
     public readonly Collection $events;
 
     /** @var Collection<int, RaceClass> */
     public readonly Collection $classes;
+
+    /** @var Collection<int, Season> */
+    public readonly Collection $seasons;
 
     private const RACE_TYPES = [
         'hotlaps' => 'Hotlaps',
@@ -39,10 +45,42 @@ class RaceManagementContext
 
         session(['current_sanction_id' => $this->sanction->id]);
 
-        $this->events = $this->sanction->events()
-            ->with('track')
-            ->orderBy('event_date')
+        // Load all seasons for the dropdown
+        $this->seasons = $this->sanction->seasons()
+            ->orderByDesc('year')
             ->get();
+
+        // Resolve the active season from session or the sanction's active season
+        $seasonId = session('current_season_id');
+        $resolvedSeason = $seasonId
+            ? $this->seasons->firstWhere('id', $seasonId)
+            : null;
+
+        if (! $resolvedSeason) {
+            $resolvedSeason = $this->seasons->firstWhere('is_active', true)
+                ?? $this->seasons->first();
+        }
+
+        $this->season = $resolvedSeason ?? new Season(['year' => (int) date('Y')]);
+        if ($resolvedSeason) {
+            session(['current_season_id' => $resolvedSeason->id]);
+        }
+
+        // Get events from the season's schedules
+        if ($resolvedSeason && $resolvedSeason->exists) {
+            $scheduleIds = $resolvedSeason->schedules()->pluck('schedules.id');
+            $this->events = Event::query()
+                ->whereHas('schedules', fn ($q) => $q->whereIn('schedules.id', $scheduleIds))
+                ->with('track')
+                ->orderBy('event_date')
+                ->get();
+        } else {
+            // Fallback to sanction events if no seasons exist
+            $this->events = $this->sanction->events()
+                ->with('track')
+                ->orderBy('event_date')
+                ->get();
+        }
 
         $this->classes = $this->event->raceClasses()
             ->orderBy('name')
@@ -90,6 +128,39 @@ class RaceManagementContext
     }
 
     /**
+     * Build the seasons array for the dropdown.
+     *
+     * @return array<int, array{id: int, name: string, year: int, isActive: bool}>
+     */
+    public function seasonsForDropdown(): array
+    {
+        return $this->seasons->map(fn (Season $season) => [
+            'id' => $season->id,
+            'name' => $season->year.' Season'.($season->is_active ? ' (Active)' : ''),
+            'year' => $season->year,
+            'isActive' => $season->is_active,
+        ])->all();
+    }
+
+    /**
+     * Build the current season array for the dropdown.
+     *
+     * @return array{id: int, name: string, year: int}|null
+     */
+    public function currentSeasonArray(): ?array
+    {
+        if (! $this->season->exists) {
+            return null;
+        }
+
+        return [
+            'id' => $this->season->id,
+            'name' => $this->season->year.' Season',
+            'year' => $this->season->year,
+        ];
+    }
+
+    /**
      * Build the events array for the dropdown.
      *
      * @return array<int, array{id: int, name: string, date: string, href: string, wire: bool}>
@@ -98,8 +169,8 @@ class RaceManagementContext
     {
         return $this->events->map(fn (Event $event) => [
             'id' => $event->id,
-            'name' => $event->name,
-            'date' => $event->event_date->format('M j, Y'),
+            'name' => $event->displayName(),
+            'date' => $event->event_date?->format('M j, Y'),
             'href' => $this->urlForEvent($event),
             'wire' => true,
         ])->all();
@@ -114,8 +185,8 @@ class RaceManagementContext
     {
         return [
             'id' => $this->event->id,
-            'name' => $this->event->name,
-            'date' => $this->event->event_date->format('M j, Y'),
+            'name' => $this->event->displayName(),
+            'date' => $this->event->event_date?->format('M j, Y'),
             'href' => '#',
         ];
     }

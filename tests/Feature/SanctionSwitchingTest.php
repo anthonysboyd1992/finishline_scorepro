@@ -22,7 +22,7 @@ it('switches sanction and stores in session', function () {
     expect(session('current_sanction_id'))->toBe($sanction->id);
 });
 
-it('redirects to first event after sanction switch', function () {
+it('redirects to dashboard after sanction switch', function () {
     $sanction = Sanction::factory()->create();
     $event = Event::factory()->for($this->track)->create(['event_date' => '2026-01-01']);
     $event->sanctions()->attach($sanction);
@@ -30,7 +30,7 @@ it('redirects to first event after sanction switch', function () {
     $response = $this->actingAs($this->user)
         ->post(route('sanction.switch', $sanction));
 
-    $response->assertRedirect(route('race-management.index', ['event' => $event]));
+    $response->assertRedirect(route('dashboard'));
 });
 
 it('redirects to dashboard if sanction has no events', function () {

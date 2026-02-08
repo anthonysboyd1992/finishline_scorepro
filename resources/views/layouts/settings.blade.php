@@ -77,8 +77,6 @@ $currentItem = match(true) {
             </div>
             
             <div class="flex items-center gap-3">
-                @include('partials.dark-mode-toggle')
-
                 <!-- User Menu -->
                 <div 
                     x-data="{ open: false }" 
@@ -136,14 +134,14 @@ $currentItem = match(true) {
 
         <!-- Main Content Area -->
         <div class="flex flex-1 overflow-hidden">
-            <!-- Red Sidebar Navigation -->
-            <nav class="flex w-20 md:w-28 flex-col bg-[#c73e3e] text-white shrink-0">
+            <!-- Sidebar Navigation -->
+            <nav class="flex w-20 md:w-28 flex-col bg-zinc-800 text-white shrink-0 border-r border-zinc-700">
                 <div class="flex-1 overflow-y-auto py-2">
                     @foreach($sidebarItems as $item)
                         <a 
                             href="{{ $item['href'] ?? '#' }}"
                             @if($item['wire'] ?? false) wire:navigate @endif
-                            class="flex flex-col items-center justify-center px-2 py-3 md:py-4 text-center transition-colors hover:bg-[#b53636] {{ ($currentItem === ($item['key'] ?? '')) ? 'bg-[#a52f2f]' : '' }}"
+                            class="flex flex-col items-center justify-center px-2 py-3 md:py-4 text-center transition-colors hover:bg-zinc-700 {{ ($currentItem === ($item['key'] ?? '')) ? 'bg-zinc-700 border-l-2 border-l-blue-500' : '' }}"
                         >
                             <div class="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
                                 {!! $item['icon'] ?? '' !!}
