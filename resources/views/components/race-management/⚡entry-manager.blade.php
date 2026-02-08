@@ -669,7 +669,8 @@ new class extends Component
             <div class="w-24 shrink-0 text-center border-l border-zinc-600">Owner</div>
             <div class="w-32 shrink-0 text-center border-l border-zinc-600">Transponder</div>
             <div class="w-12 shrink-0 text-center border-l border-zinc-600">Pill</div>
-            <div class="w-[68px] shrink-0 border-l border-zinc-600"></div>
+            <div class="w-9 shrink-0 border-l border-zinc-600"></div>
+            <div class="w-9 shrink-0 border-l border-zinc-600"></div>
         </div>
 
         {{-- Entry list --}}
@@ -710,24 +711,23 @@ new class extends Component
                             <span class="text-[8px] font-semibold mt-0.5">Draw</span>
                         </button>
                     @endif
-                    {{-- Edit / Delete actions --}}
-                    <div class="flex items-center gap-1.5 w-[68px] shrink-0 justify-center border-l border-zinc-700">
-                        <button
-                            wire:click="editEntryById({{ $entry->id }})"
-                            class="p-1.5 rounded bg-zinc-700 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"
-                            title="Edit"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
-                        <button
-                            wire:click="deleteEntryById({{ $entry->id }})"
-                            wire:confirm="Remove this entry?"
-                            class="p-1.5 rounded bg-zinc-700 text-red-400 hover:bg-red-600 hover:text-white transition-colors"
-                            title="Remove"
-                        >
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        </button>
-                    </div>
+                    {{-- Edit (blocky, full height) --}}
+                    <button
+                        wire:click="editEntryById({{ $entry->id }})"
+                        class="flex items-center justify-center w-9 shrink-0 bg-blue-900/40 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors border-l border-zinc-700"
+                        title="Edit"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                    </button>
+                    {{-- Delete (blocky, full height) --}}
+                    <button
+                        wire:click="deleteEntryById({{ $entry->id }})"
+                        wire:confirm="Remove this entry?"
+                        class="flex items-center justify-center w-9 shrink-0 bg-red-900/40 text-red-400 hover:bg-red-600 hover:text-white transition-colors border-l border-zinc-700"
+                        title="Remove"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
                 </div>
             @empty
                 <div class="h-full flex flex-col items-center justify-center text-center p-8">
