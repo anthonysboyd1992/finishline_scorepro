@@ -20,6 +20,10 @@ new class extends Component
     public string $transponderMode = 'none';
     public int $competitorsPerRow = 2;
 
+    // Add class form
+    public bool $isAddingClass = false;
+    public string $newClassName = '';
+
     // Status messages
     public string $successMessage = '';
 
@@ -134,6 +138,31 @@ new class extends Component
     }
 
     /**
+     * Add a new class to the current event.
+     */
+    public function addClass(): void
+    {
+        $this->validate([
+            'newClassName' => 'required|string|max:255',
+        ]);
+
+        $raceClass = RaceClass::firstOrCreate(['name' => trim($this->newClassName)]);
+
+        $event = Event::findOrFail($this->eventId);
+        if (! $event->raceClasses()->where('race_class_id', $raceClass->id)->exists()) {
+            $event->raceClasses()->attach($raceClass);
+        }
+
+        $this->newClassName = '';
+        $this->isAddingClass = false;
+
+        $this->redirect(
+            route('race-management.index', ['event' => $event, 'raceClass' => $raceClass]),
+            navigate: true,
+        );
+    }
+
+    /**
      * @return array<string, string>
      */
     public function getPillModesProperty(): array
@@ -229,6 +258,42 @@ new class extends Component
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
+            </div>
+
+            {{-- Add Class Button --}}
+            <div class="shrink-0 p-3 border-t border-zinc-700">
+                @if($isAddingClass)
+                    <form wire:submit="addClass" class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            wire:model="newClassName"
+                            placeholder="Class name"
+                            autofocus
+                            class="flex-1 px-3 py-1.5 bg-zinc-900 border border-zinc-600 rounded-md text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none placeholder-zinc-500"
+                        />
+                        <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                            Add
+                        </button>
+                        <button type="button" wire:click="$set('isAddingClass', false)" class="px-2 py-1.5 text-zinc-400 hover:text-zinc-200 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </form>
+                    @error('newClassName')
+                        <p class="mt-1 text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+                @else
+                    <button
+                        wire:click="$set('isAddingClass', true)"
+                        class="flex items-center justify-center gap-2 w-full px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-zinc-300 text-sm font-medium rounded-md transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Class
+                    </button>
+                @endif
             </div>
         </div>
 
@@ -376,12 +441,44 @@ new class extends Component
             <div class="text-center p-8">
                 <div class="w-16 h-16 bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4">
                     <svg class="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
                 </div>
-                <p class="text-zinc-400 mb-2">Select a class to configure settings</p>
-                <p class="text-sm text-zinc-500">Use the class dropdown above to get started</p>
+                <p class="text-zinc-400 mb-2">No classes for this event</p>
+                <p class="text-sm text-zinc-500 mb-4">Add a class to get started with setup</p>
+
+                @if($isAddingClass)
+                    <form wire:submit="addClass" class="flex items-center gap-2 max-w-xs mx-auto">
+                        <input
+                            type="text"
+                            wire:model="newClassName"
+                            placeholder="Class name"
+                            autofocus
+                            class="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-md text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none placeholder-zinc-500"
+                        />
+                        <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors">
+                            Add
+                        </button>
+                        <button type="button" wire:click="$set('isAddingClass', false)" class="px-2 py-2 text-zinc-400 hover:text-zinc-200 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </form>
+                    @error('newClassName')
+                        <p class="mt-1 text-xs text-red-400">{{ $message }}</p>
+                    @enderror
+                @else
+                    <button
+                        wire:click="$set('isAddingClass', true)"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md transition-colors"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Class
+                    </button>
+                @endif
             </div>
         </div>
     @endif

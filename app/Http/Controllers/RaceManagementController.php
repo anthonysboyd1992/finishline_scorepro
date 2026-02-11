@@ -4,12 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\RaceClass;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class RaceManagementController extends Controller
 {
-    public function setup(Event $event, ?RaceClass $raceClass = null): View
+    public function setup(Event $event, ?RaceClass $raceClass = null): View|RedirectResponse
     {
+        if (! $raceClass) {
+            $firstClass = $event->raceClasses()->orderBy('name')->first();
+            if ($firstClass) {
+                return redirect()->route('race-management.index', [
+                    'event' => $event,
+                    'raceClass' => $firstClass,
+                ]);
+            }
+        }
+
         return view('pages.race-management.index', compact('event', 'raceClass'));
     }
 

@@ -29,13 +29,13 @@ it('renders the setup manager component', function () {
     ])->assertOk();
 });
 
-it('shows the no-class-selected state when raceClassId is 0', function () {
+it('shows the no-class state when raceClassId is 0', function () {
     Livewire::test('race-management.setup-manager', [
         'eventId' => $this->event->id,
         'raceClassId' => 0,
     ])
         ->assertOk()
-        ->assertSee('Select a class to configure settings');
+        ->assertSee('No classes for this event');
 });
 
 it('shows pill options by default', function () {
@@ -264,10 +264,52 @@ it('loads the setup page with optional class parameter', function () {
         ->assertSee('Setup');
 });
 
-it('loads the setup page without class parameter', function () {
+it('redirects setup page to first class when no class provided', function () {
     $this->get(route('race-management.index', [
         'event' => $this->event,
     ]))
-        ->assertOk()
-        ->assertSee('Setup');
+        ->assertRedirect(route('race-management.index', [
+            'event' => $this->event,
+            'raceClass' => $this->raceClass,
+        ]));
+});
+
+it('adds a new class to the event', function () {
+    Livewire::test('race-management.setup-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->set('isAddingClass', true)
+        ->set('newClassName', 'Stock Novice')
+        ->call('addClass');
+
+    $newClass = RaceClass::where('name', 'Stock Novice')->first();
+    expect($newClass)->not->toBeNull();
+    expect($this->event->raceClasses()->where('race_class_id', $newClass->id)->exists())->toBeTrue();
+});
+
+it('reuses an existing class when adding by name', function () {
+    $existing = RaceClass::factory()->create(['name' => 'Modified']);
+
+    Livewire::test('race-management.setup-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->set('isAddingClass', true)
+        ->set('newClassName', 'Modified')
+        ->call('addClass');
+
+    expect($this->event->raceClasses()->where('race_class_id', $existing->id)->exists())->toBeTrue();
+    expect(RaceClass::where('name', 'Modified')->count())->toBe(1);
+});
+
+it('validates class name is required', function () {
+    Livewire::test('race-management.setup-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->set('isAddingClass', true)
+        ->set('newClassName', '')
+        ->call('addClass')
+        ->assertHasErrors(['newClassName' => 'required']);
 });

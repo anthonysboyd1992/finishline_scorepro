@@ -19,9 +19,15 @@ beforeEach(function () {
     session(['current_sanction_id' => $this->sanction->id]);
 });
 
-it('loads the setup page with route model binding', function () {
+it('redirects setup page to first class when no class provided', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.index', ['event' => $this->event]))
+        ->assertRedirect(route('race-management.index', ['event' => $this->event, 'raceClass' => $this->raceClass]));
+});
+
+it('loads the setup page with class parameter', function () {
+    $this->actingAs($this->user)
+        ->get(route('race-management.index', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
         ->assertSee('Setup');
 });
@@ -87,9 +93,9 @@ it('returns 404 for non-existent race class', function () {
 
 it('shows the event name on the setup page', function () {
     $this->actingAs($this->user)
-        ->get(route('race-management.index', ['event' => $this->event]))
+        ->get(route('race-management.index', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
-        ->assertSee($this->event->name);
+        ->assertSee($this->event->displayName());
 });
 
 it('shows the class name on pages with class context', function () {

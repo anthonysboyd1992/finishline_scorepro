@@ -123,7 +123,7 @@ it('switches season via POST route and redirects back when no events', function 
 });
 
 it('renders race management pages with season context', function () {
-    $this->get(route('race-management.index', ['event' => $this->event]))
+    $this->get(route('race-management.index', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk();
 
     $this->get(route('race-management.entries', ['event' => $this->event, 'raceClass' => $this->raceClass]))
