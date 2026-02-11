@@ -44,7 +44,7 @@ it('loads the race-order page with event and class', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.race-order', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
-        ->assertSee('Race Order');
+        ->assertSee('Running Order');
 });
 
 it('loads the lineups page with event, class, and race type', function () {

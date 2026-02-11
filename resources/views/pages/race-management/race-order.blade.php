@@ -19,7 +19,7 @@ $raceOrder = [
 ?>
 
 <x-layouts::module
-    title="Race Order"
+    title="Running Order"
     moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$ctx->sidebarItems()"
     :seasons="$ctx->seasonsForDropdown()"
@@ -37,7 +37,7 @@ $raceOrder = [
         <div class="p-4 border-b border-slate-200 dark:border-zinc-700">
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Race Order</h2>
+                    <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Running Order</h2>
                     <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Drag and drop to reorder races</p>
                 </div>
                 <div class="flex items-center gap-2">

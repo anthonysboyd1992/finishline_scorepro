@@ -1,0 +1,388 @@
+<?php
+
+use App\Models\Event;
+use App\Models\RaceClass;
+use App\Models\RaceClassDefault;
+use Livewire\Component;
+
+new class extends Component
+{
+    public int $eventId = 0;
+    public int $raceClassId = 0;
+
+    // Active category: pill, transponder, race
+    public string $activeCategory = 'pill';
+
+    // Form fields
+    public string $pillMode = 'none';
+    public int $pillMax = 999;
+    public int $pillMin = 1;
+    public string $transponderMode = 'none';
+    public int $competitorsPerRow = 2;
+
+    // Status messages
+    public string $successMessage = '';
+
+    public function mount(): void
+    {
+        $this->loadSettings();
+    }
+
+    public function setCategory(string $category): void
+    {
+        $this->activeCategory = $category;
+        $this->successMessage = '';
+    }
+
+    /**
+     * Load settings from pivot, then defaults, then hardcoded fallbacks.
+     */
+    public function loadSettings(): void
+    {
+        if (! $this->eventId || ! $this->raceClassId) {
+            return;
+        }
+
+        $event = Event::find($this->eventId);
+        if (! $event) {
+            return;
+        }
+
+        $pivot = $event->raceClasses()
+            ->where('race_class_id', $this->raceClassId)
+            ->first()
+            ?->pivot;
+
+        if ($pivot && $pivot->pill_mode !== null) {
+            $this->pillMode = $pivot->pill_mode ?? 'none';
+            $this->pillMax = $pivot->pill_max ?? 999;
+            $this->pillMin = $pivot->pill_min ?? 1;
+            $this->transponderMode = $pivot->transponder_mode ?? 'none';
+            $this->competitorsPerRow = $pivot->competitors_per_row ?? 2;
+
+            return;
+        }
+
+        // Try class defaults
+        $defaults = RaceClassDefault::where('race_class_id', $this->raceClassId)->first();
+        if ($defaults) {
+            $this->pillMode = $defaults->pill_mode ?? 'none';
+            $this->pillMax = $defaults->pill_max ?? 999;
+            $this->pillMin = $defaults->pill_min ?? 1;
+            $this->transponderMode = $defaults->transponder_mode ?? 'none';
+            $this->competitorsPerRow = $defaults->competitors_per_row ?? 2;
+
+            return;
+        }
+
+        // Hardcoded defaults
+        $this->pillMode = 'none';
+        $this->pillMax = 999;
+        $this->pillMin = 1;
+        $this->transponderMode = 'none';
+        $this->competitorsPerRow = 2;
+    }
+
+    /**
+     * Save settings to the event_race_class pivot table.
+     */
+    public function save(): void
+    {
+        if (! $this->eventId || ! $this->raceClassId) {
+            return;
+        }
+
+        $event = Event::findOrFail($this->eventId);
+
+        $event->raceClasses()->syncWithoutDetaching([
+            $this->raceClassId => [
+                'pill_mode' => $this->pillMode,
+                'pill_max' => $this->pillMax,
+                'pill_min' => $this->pillMin,
+                'transponder_mode' => $this->transponderMode,
+                'competitors_per_row' => $this->competitorsPerRow,
+            ],
+        ]);
+
+        $this->successMessage = 'Settings saved successfully.';
+    }
+
+    /**
+     * Save settings as default for this class (future events inherit these).
+     */
+    public function saveAsDefault(): void
+    {
+        if (! $this->raceClassId) {
+            return;
+        }
+
+        RaceClassDefault::updateOrCreate(
+            ['race_class_id' => $this->raceClassId],
+            [
+                'pill_mode' => $this->pillMode,
+                'pill_max' => $this->pillMax,
+                'pill_min' => $this->pillMin,
+                'transponder_mode' => $this->transponderMode,
+                'competitors_per_row' => $this->competitorsPerRow,
+            ],
+        );
+
+        // Also save to the pivot for this event
+        $this->save();
+
+        $this->successMessage = 'Settings saved as default for this class.';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getPillModesProperty(): array
+    {
+        return [
+            'none' => 'No Pill Draw',
+            'auto_after_confirm' => 'After Confirm Entry Auto Draw',
+            'auto_before_selection' => 'Auto Draw Before Competitor Selection',
+            'manual_on_confirm' => 'Manual On Confirm Entry',
+            'auto_after_confirm_manual' => 'Auto Draw After Confirm',
+            'after_confirm_manual_entry' => 'After Confirm Manual Entry',
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getTransponderModesProperty(): array
+    {
+        return [
+            'none' => 'No Transponders',
+            'allow_rentals' => 'Transponders Allow Rentals',
+            'no_rentals' => 'Transponders No Rentals',
+        ];
+    }
+};
+?>
+
+<div class="flex flex-1 min-h-0">
+    @if($this->raceClassId)
+        {{-- Left Panel: Category List --}}
+        <div class="w-full md:w-72 lg:w-80 flex flex-col bg-zinc-800 border-r border-zinc-700 shrink-0">
+            <div class="p-4 border-b border-zinc-700">
+                <h2 class="text-lg font-semibold text-white">Event Setup</h2>
+                <p class="text-sm text-zinc-400 mt-1">Configure settings for this class</p>
+            </div>
+
+            <div class="flex-1 overflow-y-auto">
+                {{-- Pill Options --}}
+                <button
+                    wire:click="setCategory('pill')"
+                    class="w-full flex items-center gap-3 px-4 py-3 border-b border-zinc-700/50 transition-colors text-left {{ $activeCategory === 'pill' ? 'bg-zinc-700 border-l-2 border-l-blue-500' : 'hover:bg-zinc-700/50' }}"
+                >
+                    <div class="w-10 h-10 {{ $activeCategory === 'pill' ? 'bg-blue-900/50 text-blue-400' : 'bg-zinc-700 text-zinc-400' }} rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium {{ $activeCategory === 'pill' ? 'text-white' : 'text-zinc-300' }}">Pill Options</p>
+                        <p class="text-xs text-zinc-500">Pill draw configuration</p>
+                    </div>
+                    <svg class="w-5 h-5 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                {{-- Transponder Options --}}
+                <button
+                    wire:click="setCategory('transponder')"
+                    class="w-full flex items-center gap-3 px-4 py-3 border-b border-zinc-700/50 transition-colors text-left {{ $activeCategory === 'transponder' ? 'bg-zinc-700 border-l-2 border-l-blue-500' : 'hover:bg-zinc-700/50' }}"
+                >
+                    <div class="w-10 h-10 {{ $activeCategory === 'transponder' ? 'bg-blue-900/50 text-blue-400' : 'bg-zinc-700 text-zinc-400' }} rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium {{ $activeCategory === 'transponder' ? 'text-white' : 'text-zinc-300' }}">Transponder Options</p>
+                        <p class="text-xs text-zinc-500">Transponder requirements</p>
+                    </div>
+                    <svg class="w-5 h-5 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+
+                {{-- Race Options --}}
+                <button
+                    wire:click="setCategory('race')"
+                    class="w-full flex items-center gap-3 px-4 py-3 border-b border-zinc-700/50 transition-colors text-left {{ $activeCategory === 'race' ? 'bg-zinc-700 border-l-2 border-l-blue-500' : 'hover:bg-zinc-700/50' }}"
+                >
+                    <div class="w-10 h-10 {{ $activeCategory === 'race' ? 'bg-blue-900/50 text-blue-400' : 'bg-zinc-700 text-zinc-400' }} rounded-lg flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium {{ $activeCategory === 'race' ? 'text-white' : 'text-zinc-300' }}">Race Options</p>
+                        <p class="text-xs text-zinc-500">Competitors per row</p>
+                    </div>
+                    <svg class="w-5 h-5 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        {{-- Right Panel: Settings Form + Fixed Bottom Bar --}}
+        <div class="flex-1 flex flex-col min-h-0">
+            <div class="flex-1 bg-zinc-900 overflow-y-auto">
+                <div class="max-w-2xl mx-auto p-6">
+                    {{-- Success Message --}}
+                    @if($successMessage)
+                        <div class="mb-4 px-4 py-3 bg-green-900/30 border border-green-700/50 rounded-lg text-green-400 text-sm flex items-center gap-2">
+                            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ $successMessage }}
+                        </div>
+                    @endif
+
+                    {{-- Pill Options Form --}}
+                    @if($activeCategory === 'pill')
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-1">Pill Options</h3>
+                            <p class="text-sm text-zinc-400 mb-6">Configure how pill numbers are assigned to entries.</p>
+
+                            <div class="space-y-3">
+                                @foreach($this->pillModes as $value => $label)
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors {{ $pillMode === $value ? 'border-blue-500 bg-blue-900/20' : 'border-zinc-700 bg-zinc-800 hover:border-zinc-600' }}">
+                                        <input
+                                            type="radio"
+                                            wire:model.live="pillMode"
+                                            value="{{ $value }}"
+                                            class="w-4 h-4 text-blue-500 bg-zinc-700 border-zinc-600 focus:ring-blue-500 focus:ring-offset-0"
+                                        />
+                                        <span class="text-sm font-medium {{ $pillMode === $value ? 'text-white' : 'text-zinc-300' }}">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+
+                            @if($pillMode !== 'none')
+                                <div class="mt-6 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="pill-min" class="block text-sm font-medium text-zinc-300 mb-1">Lowest Pill</label>
+                                        <input
+                                            id="pill-min"
+                                            type="number"
+                                            wire:model="pillMin"
+                                            min="1"
+                                            class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label for="pill-max" class="block text-sm font-medium text-zinc-300 mb-1">Max Pill</label>
+                                        <input
+                                            id="pill-max"
+                                            type="number"
+                                            wire:model="pillMax"
+                                            min="1"
+                                            class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
+                    {{-- Transponder Options Form --}}
+                    @if($activeCategory === 'transponder')
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-1">Transponder Options</h3>
+                            <p class="text-sm text-zinc-400 mb-6">Configure transponder requirements for entries.</p>
+
+                            <div class="space-y-3">
+                                @foreach($this->transponderModes as $value => $label)
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors {{ $transponderMode === $value ? 'border-blue-500 bg-blue-900/20' : 'border-zinc-700 bg-zinc-800 hover:border-zinc-600' }}">
+                                        <input
+                                            type="radio"
+                                            wire:model.live="transponderMode"
+                                            value="{{ $value }}"
+                                            class="w-4 h-4 text-blue-500 bg-zinc-700 border-zinc-600 focus:ring-blue-500 focus:ring-offset-0"
+                                        />
+                                        <span class="text-sm font-medium {{ $transponderMode === $value ? 'text-white' : 'text-zinc-300' }}">{{ $label }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Race Options Form --}}
+                    @if($activeCategory === 'race')
+                        <div>
+                            <h3 class="text-lg font-semibold text-white mb-1">Race Options</h3>
+                            <p class="text-sm text-zinc-400 mb-6">Configure race layout and competitor settings.</p>
+
+                            <div>
+                                <label for="competitors-per-row" class="block text-sm font-medium text-zinc-300 mb-1">Default Competitors Per Row</label>
+                                <select
+                                    id="competitors-per-row"
+                                    wire:model="competitorsPerRow"
+                                    class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                >
+                                    @for($i = 1; $i <= 4; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                <p class="mt-2 text-xs text-zinc-500">Qualifying and Hotlaps will always default to 1 regardless of this setting.</p>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Fixed Bottom Toolbar --}}
+            <div class="shrink-0 flex items-stretch bg-zinc-800 border-t border-zinc-700">
+                @if($successMessage)
+                    <span class="flex items-center gap-1.5 px-5 text-sm text-green-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        {{ $successMessage }}
+                    </span>
+                @endif
+
+                <div class="ml-auto flex items-stretch">
+                    <button
+                        wire:click="saveAsDefault"
+                        wire:loading.attr="disabled"
+                        class="px-5 py-3 bg-zinc-700 hover:bg-zinc-600 text-zinc-200 text-sm font-medium transition-colors disabled:opacity-50 border-l border-zinc-700"
+                    >
+                        <span wire:loading.remove wire:target="saveAsDefault">Save as Default</span>
+                        <span wire:loading wire:target="saveAsDefault">Saving...</span>
+                    </button>
+                    <button
+                        wire:click="save"
+                        wire:loading.attr="disabled"
+                        class="px-5 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                        <span wire:loading.remove wire:target="save">Save</span>
+                        <span wire:loading wire:target="save">Saving...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @else
+        {{-- No class selected --}}
+        <div class="flex-1 bg-zinc-900 flex items-center justify-center">
+            <div class="text-center p-8">
+                <div class="w-16 h-16 bg-zinc-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </div>
+                <p class="text-zinc-400 mb-2">Select a class to configure settings</p>
+                <p class="text-sm text-zinc-500">Use the class dropdown above to get started</p>
+            </div>
+        </div>
+    @endif
+</div>

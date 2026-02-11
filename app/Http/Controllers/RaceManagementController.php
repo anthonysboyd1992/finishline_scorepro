@@ -8,9 +8,9 @@ use Illuminate\View\View;
 
 class RaceManagementController extends Controller
 {
-    public function setup(Event $event): View
+    public function setup(Event $event, ?RaceClass $raceClass = null): View
     {
-        return view('pages.race-management.index', compact('event'));
+        return view('pages.race-management.index', compact('event', 'raceClass'));
     }
 
     public function entries(Event $event, RaceClass $raceClass): View

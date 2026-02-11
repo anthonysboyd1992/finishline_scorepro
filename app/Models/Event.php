@@ -46,7 +46,8 @@ class Event extends Model
      */
     public function raceClasses(): BelongsToMany
     {
-        return $this->belongsToMany(RaceClass::class);
+        return $this->belongsToMany(RaceClass::class)
+            ->withPivot('pill_mode', 'pill_max', 'pill_min', 'transponder_mode', 'competitors_per_row');
     }
 
     /**

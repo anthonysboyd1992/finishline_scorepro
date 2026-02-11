@@ -232,7 +232,9 @@ class RaceManagementContext
         $firstClass = $event->raceClasses()->orderBy('name')->first();
 
         return match ($this->currentPage) {
-            'index' => route('race-management.index', ['event' => $event]),
+            'index' => $firstClass
+                ? route('race-management.index', ['event' => $event, 'raceClass' => $firstClass])
+                : route('race-management.index', ['event' => $event]),
             'entries', 'races', 'race-order' => $firstClass
                 ? route("race-management.{$this->currentPage}", ['event' => $event, 'raceClass' => $firstClass])
                 : route('race-management.index', ['event' => $event]),
@@ -249,7 +251,7 @@ class RaceManagementContext
     public function urlForClass(RaceClass $class): string
     {
         return match ($this->currentPage) {
-            'index' => route('race-management.index', ['event' => $this->event]),
+            'index' => route('race-management.index', ['event' => $this->event, 'raceClass' => $class]),
             'entries', 'races', 'race-order' => route("race-management.{$this->currentPage}", ['event' => $this->event, 'raceClass' => $class]),
             'lineups', 'results', 'points-payout' => route("race-management.{$this->currentPage}", ['event' => $this->event, 'raceClass' => $class, 'raceType' => $this->raceType ?? 'heat']),
             default => route('race-management.index', ['event' => $this->event]),
@@ -315,7 +317,7 @@ class RaceManagementContext
             ],
             [
                 'key' => 'race-order',
-                'label' => 'Race Order',
+                'label' => 'Running Order',
                 'href' => $classUrl('race-order'),
                 'wire' => true,
                 'icon' => '<svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>',

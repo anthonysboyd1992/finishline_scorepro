@@ -69,7 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Race Management
     Route::prefix('race-management/{event}')->name('race-management.')->controller(RaceManagementController::class)->group(function () {
-        Route::get('/setup', 'setup')->name('index');
+        Route::get('/setup/{raceClass?}', 'setup')->name('index');
         Route::get('/entries/{raceClass}', 'entries')->name('entries');
         Route::get('/races/{raceClass}', 'races')->name('races');
         Route::get('/race-order/{raceClass}', 'raceOrder')->name('race-order');
