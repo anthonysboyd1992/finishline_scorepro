@@ -82,6 +82,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('transponders')->name('transponders.')->group(function () {
         Route::view('/', 'pages.transponders.index')->name('index');
     });
+
+    // Event Screen (fullscreen display for projector / second monitor)
+    Route::get('/event-screen/{event}', function (Event $event) {
+        return view('pages.event-screen', ['event' => $event]);
+    })->name('event-screen');
 });
 
 // Appearance toggle (used by nav bar dark mode toggle)

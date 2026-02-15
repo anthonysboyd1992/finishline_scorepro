@@ -335,3 +335,263 @@ it('leaves transponder unchanged if alias not found', function () {
     $component->assertSet('entryTransponder', 'UNKNOWN123');
     $component->assertSet('transponderResolved', '');
 });
+
+it('loads pill settings from pivot table', function () {
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 50,
+    ]);
+
+    $component = Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ]);
+
+    expect($component->get('pillSettings'))->toBe([
+        'enabled' => true,
+        'min' => 1,
+        'max' => 50,
+        'mode' => 'auto_after_confirm',
+    ]);
+});
+
+it('falls back to class defaults when pivot has no pill settings', function () {
+    \App\Models\RaceClassDefault::create([
+        'race_class_id' => $this->raceClass->id,
+        'pill_mode' => 'manual_on_confirm',
+        'pill_min' => 5,
+        'pill_max' => 30,
+    ]);
+
+    $component = Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ]);
+
+    expect($component->get('pillSettings'))->toBe([
+        'enabled' => true,
+        'min' => 5,
+        'max' => 30,
+        'mode' => 'manual_on_confirm',
+    ]);
+});
+
+it('returns pill disabled when no settings exist', function () {
+    $component = Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ]);
+
+    expect($component->get('pillSettings'))->toBe([
+        'enabled' => false,
+        'min' => 1,
+        'max' => 999,
+        'mode' => 'none',
+    ]);
+});
+
+it('hides pill column header when pill is disabled', function () {
+    Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'pill_number' => null,
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->assertDontSee('Draw pill number');
+});
+
+it('shows per-row draw button when pill is enabled', function () {
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'pill_number' => null,
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->assertSee('Draw');
+});
+
+it('assigns a pill number to the current draw entry and stays in draw mode', function () {
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+        'driver_name' => 'Test, Driver',
+    ]);
+
+    $component = Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id)
+        ->call('assignPill', 7);
+
+    expect($entry->fresh()->pill_number)->toBe(7);
+
+    // Stays in draw mode showing the result, does not advance
+    $component->assertSet('isDrawing', true)
+        ->assertSet('currentDrawEntryId', $entry->id);
+});
+
+it('can manually exit pill draw mode', function () {
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+        'driver_name' => 'Some, Driver',
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id)
+        ->assertSet('isDrawing', true)
+        ->call('exitPillDraw')
+        ->assertSet('isDrawing', false)
+        ->assertSet('currentDrawEntryId', null);
+});
+
+it('drawPill enters draw mode for the given entry', function () {
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 10,
+        'pill_max' => 15,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id)
+        ->assertSet('isDrawing', true)
+        ->assertSet('currentDrawEntryId', $entry->id);
+});
+
+it('dispatches PillDrawUpdated event when drawPill is called', function () {
+    \Illuminate\Support\Facades\Event::fake([\App\Events\PillDrawUpdated::class]);
+
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+        'driver_name' => 'Broadcast, Test',
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id);
+
+    \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\PillDrawUpdated::class, function ($e) {
+        return $e->state === 'idle'
+            && $e->eventId === $this->event->id
+            && $e->driverName === 'Broadcast, Test';
+    });
+});
+
+it('dispatches PillDrawUpdated event when pill is assigned', function () {
+    \Illuminate\Support\Facades\Event::fake([\App\Events\PillDrawUpdated::class]);
+
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+        'driver_name' => 'Assign, Test',
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id)
+        ->call('assignPill', 5);
+
+    \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\PillDrawUpdated::class, function ($e) {
+        return $e->state === 'stopped' && $e->assignedPill === 5;
+    });
+});
+
+it('dispatches PillDrawUpdated idle event when exiting draw', function () {
+    \Illuminate\Support\Facades\Event::fake([\App\Events\PillDrawUpdated::class]);
+
+    $this->event->raceClasses()->updateExistingPivot($this->raceClass->id, [
+        'pill_mode' => 'auto_after_confirm',
+        'pill_min' => 1,
+        'pill_max' => 20,
+    ]);
+
+    $competitor = Competitor::factory()->create();
+    $entry = Entry::factory()->create([
+        'event_id' => $this->event->id,
+        'race_class_id' => $this->raceClass->id,
+        'competitor_id' => $competitor->id,
+        'pill_number' => null,
+    ]);
+
+    Livewire::test('race-management.entry-manager', [
+        'eventId' => $this->event->id,
+        'raceClassId' => $this->raceClass->id,
+    ])
+        ->call('drawPill', $entry->id)
+        ->call('exitPillDraw');
+
+    \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\PillDrawUpdated::class, function ($e) {
+        return $e->state === 'idle' && $e->driverName === '';
+    });
+});
