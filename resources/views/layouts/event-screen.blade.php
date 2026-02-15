@@ -22,6 +22,6 @@
 <body class="h-dvh overflow-hidden bg-zinc-950 text-white">
     {{ $slot }}
 
-    @livewireScripts
+    @livewireScriptConfig
 </body>
 </html>

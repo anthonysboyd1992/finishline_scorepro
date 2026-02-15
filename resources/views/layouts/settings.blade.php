@@ -161,6 +161,6 @@ $currentItem = match(true) {
         </div>
     </div>
 
-    @livewireScripts
+    @livewireScriptConfig
 </body>
 </html>

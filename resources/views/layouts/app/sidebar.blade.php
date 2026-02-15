@@ -102,6 +102,6 @@
         {{ $slot }}
     </main>
 
-    @livewireScripts
+    @livewireScriptConfig
 </body>
 </html>
