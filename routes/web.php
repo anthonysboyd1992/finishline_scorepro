@@ -83,9 +83,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::view('/', 'pages.transponders.index')->name('index');
     });
 
-    // Event Screen (fullscreen display for projector / second monitor)
-    Route::get('/event-screen/{event}', function (Event $event) {
-        return view('pages.event-screen', ['event' => $event]);
+    // Event Screen (fullscreen display for projector / second monitor, scoped per operator)
+    Route::get('/event-screen/{event}/{operatorToken}', function (Event $event, string $operatorToken) {
+        return view('pages.event-screen', ['event' => $event, 'operatorToken' => $operatorToken]);
     })->name('event-screen');
 });
 

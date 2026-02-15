@@ -14,6 +14,7 @@ beforeEach(function () {
     $this->event = Event::factory()->create();
     $this->raceClass = RaceClass::factory()->create();
     $this->event->raceClasses()->attach($this->raceClass);
+    session(['operator_token' => 'test-operator-token']);
 });
 
 it('renders the entry manager component', function () {
@@ -533,7 +534,8 @@ it('dispatches PillDrawUpdated event when drawPill is called', function () {
     \Illuminate\Support\Facades\Event::assertDispatched(\App\Events\PillDrawUpdated::class, function ($e) {
         return $e->state === 'idle'
             && $e->eventId === $this->event->id
-            && $e->driverName === 'Broadcast, Test';
+            && $e->driverName === 'Broadcast, Test'
+            && $e->operatorToken !== '';
     });
 });
 

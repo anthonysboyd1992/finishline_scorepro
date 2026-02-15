@@ -24,6 +24,7 @@ class PillDrawUpdated implements ShouldBroadcastNow
         public array $drawnPills,
         public int $pillMin,
         public int $pillMax,
+        public string $operatorToken = '',
     ) {}
 
     /**
@@ -32,7 +33,7 @@ class PillDrawUpdated implements ShouldBroadcastNow
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel("event.{$this->eventId}"),
+            new PrivateChannel("event.{$this->eventId}.operator.{$this->operatorToken}"),
         ];
     }
 }

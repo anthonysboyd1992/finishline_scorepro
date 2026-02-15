@@ -45,6 +45,18 @@
             </div>
             
             <div class="flex items-center gap-3">
+                @if($currentEvent)
+                    <a
+                        href="{{ route('event-screen', ['event' => $currentEvent['id'], 'operatorToken' => session('operator_token', '')]) }}"
+                        target="_blank"
+                        class="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                        title="Open Event Screen"
+                    >
+                        <i class="fa-solid fa-tv text-sm"></i>
+                        <span class="text-xs font-medium hidden sm:inline">Event Screen</span>
+                    </a>
+                @endif
+
                 <!-- User Menu -->
                 <div 
                     x-data="{ open: false }" 

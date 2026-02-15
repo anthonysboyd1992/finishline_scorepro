@@ -10,10 +10,11 @@ beforeEach(function () {
     $this->user = User::factory()->create();
     $this->actingAs($this->user);
     $this->event = Event::factory()->create();
+    $this->operatorToken = session('operator_token', 'test-token');
 });
 
 it('loads the event screen page for authenticated users', function () {
-    $this->get(route('event-screen', $this->event))
+    $this->get(route('event-screen', ['event' => $this->event, 'operatorToken' => $this->operatorToken]))
         ->assertOk()
         ->assertSee('Event Screen');
 });
@@ -21,13 +22,14 @@ it('loads the event screen page for authenticated users', function () {
 it('requires authentication to access event screen', function () {
     auth()->logout();
 
-    $this->get(route('event-screen', $this->event))
+    $this->get(route('event-screen', ['event' => $this->event, 'operatorToken' => $this->operatorToken]))
         ->assertRedirect(route('login'));
 });
 
 it('renders the pill draw display component', function () {
     Livewire::test('event-screen.pill-draw-display', [
         'eventId' => $this->event->id,
+        'operatorToken' => $this->operatorToken,
     ])
         ->assertOk()
         ->assertSee('Waiting for activity...');
@@ -36,6 +38,7 @@ it('renders the pill draw display component', function () {
 it('handles pill draw update event', function () {
     Livewire::test('event-screen.pill-draw-display', [
         'eventId' => $this->event->id,
+        'operatorToken' => $this->operatorToken,
     ])
         ->call('handlePillDrawUpdate', [
             'state' => 'dancing',
@@ -56,6 +59,7 @@ it('handles pill draw update event', function () {
 it('handles stopped state with assigned pill', function () {
     Livewire::test('event-screen.pill-draw-display', [
         'eventId' => $this->event->id,
+        'operatorToken' => $this->operatorToken,
     ])
         ->call('handlePillDrawUpdate', [
             'state' => 'stopped',
@@ -74,6 +78,7 @@ it('handles stopped state with assigned pill', function () {
 it('resets to idle when draw exits', function () {
     $component = Livewire::test('event-screen.pill-draw-display', [
         'eventId' => $this->event->id,
+        'operatorToken' => $this->operatorToken,
     ]);
 
     // First activate dancing
@@ -101,7 +106,7 @@ it('resets to idle when draw exits', function () {
         ->assertSet('driverName', '');
 });
 
-it('PillDrawUpdated event broadcasts on private event channel', function () {
+it('PillDrawUpdated event broadcasts on private operator channel', function () {
     $event = new PillDrawUpdated(
         eventId: $this->event->id,
         raceClassId: 1,
@@ -112,11 +117,12 @@ it('PillDrawUpdated event broadcasts on private event channel', function () {
         drawnPills: [1, 2, 3],
         pillMin: 1,
         pillMax: 50,
+        operatorToken: 'abc-123',
     );
 
     $channels = $event->broadcastOn();
 
     expect($channels)->toHaveCount(1);
     expect($channels[0])->toBeInstanceOf(PrivateChannel::class);
-    expect($channels[0]->name)->toBe("private-event.{$this->event->id}");
+    expect($channels[0]->name)->toBe("private-event.{$this->event->id}.operator.abc-123");
 });

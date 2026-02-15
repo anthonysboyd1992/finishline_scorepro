@@ -475,6 +475,7 @@ new class extends Component
                 drawnPills: $this->usedPills,
                 pillMin: $ps['min'],
                 pillMax: $ps['max'],
+                operatorToken: session('operator_token', ''),
             ));
         } catch (\Throwable $e) {
             logger()->warning('Pill draw broadcast failed: '.$e->getMessage());

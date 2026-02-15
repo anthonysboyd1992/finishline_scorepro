@@ -7,6 +7,8 @@ new class extends Component
 {
     public int $eventId = 0;
 
+    public string $operatorToken = '';
+
     // State driven by broadcast events
     public string $mode = 'idle'; // idle, dancing, stopped
     public string $driverName = '';
@@ -22,7 +24,7 @@ new class extends Component
     public function getListeners(): array
     {
         return [
-            "echo-private:event.{$this->eventId},PillDrawUpdated" => 'handlePillDrawUpdate',
+            "echo-private:event.{$this->eventId}.operator.{$this->operatorToken},PillDrawUpdated" => 'handlePillDrawUpdate',
         ];
     }
 
@@ -101,15 +103,18 @@ new class extends Component
 
             {{-- Bottom status bar --}}
             <div class="shrink-0 flex items-center justify-center px-6 py-4 bg-zinc-800 border-t border-zinc-700">
+                <template x-if="mode === 'idle' && driverName">
+                    <div class="text-zinc-300 font-bold text-xl">Press Enter to start draw</div>
+                </template>
                 <template x-if="mode === 'dancing'">
-                    <div class="text-yellow-400 font-bold text-xl animate-pulse">Drawing pill number...</div>
+                    <div class="text-yellow-400 font-bold text-xl animate-pulse">Press Enter to end draw</div>
                 </template>
                 <template x-if="mode === 'stopped'">
                     <div class="text-green-400 font-bold text-xl">
                         Pill <span x-text="assignedPill"></span> assigned!
                     </div>
                 </template>
-                <template x-if="mode === 'idle'">
+                <template x-if="mode === 'idle' && !driverName">
                     <div class="text-zinc-500 text-lg">Waiting for next draw...</div>
                 </template>
             </div>
