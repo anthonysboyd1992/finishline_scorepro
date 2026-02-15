@@ -49,9 +49,9 @@ it('generates correct sidebar items', function () {
 
     expect($items)->toHaveCount(7)
         ->and($items[0]['key'])->toBe('index')
-        ->and($items[0]['label'])->toBe('Setup')
-        ->and($items[4]['key'])->toBe('lineups')
-        ->and($items[4]['label'])->toBe('Lineups');
+        ->and($items[0]['label'])->toBe('Config')
+        ->and($items[3]['key'])->toBe('lineups')
+        ->and($items[3]['label'])->toBe('Line Ups');
 
     // URLs should contain the event ID
     foreach ($items as $item) {

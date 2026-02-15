@@ -29,14 +29,14 @@ it('loads the setup page with class parameter', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.index', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
-        ->assertSee('Setup');
+        ->assertSee('Config');
 });
 
-it('loads the entries page with event and class', function () {
+it('loads the check ins page with event and class', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.entries', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
-        ->assertSee('Entries');
+        ->assertSee('Check Ins');
 });
 
 it('loads the races page with event and class', function () {
@@ -46,32 +46,32 @@ it('loads the races page with event and class', function () {
         ->assertSee('Races');
 });
 
-it('loads the race-order page with event and class', function () {
+it('loads the race order page with event and class', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.race-order', ['event' => $this->event, 'raceClass' => $this->raceClass]))
         ->assertOk()
-        ->assertSee('Running Order');
+        ->assertSee('Race Order');
 });
 
-it('loads the lineups page with event, class, and race type', function () {
+it('loads the line ups page with event, class, and race type', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.lineups', ['event' => $this->event, 'raceClass' => $this->raceClass, 'raceType' => 'heat']))
         ->assertOk()
-        ->assertSee('Lineups');
+        ->assertSee('Line Ups');
 });
 
-it('loads the results page with event, class, and race type', function () {
+it('loads the scoring page with event, class, and race type', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.results', ['event' => $this->event, 'raceClass' => $this->raceClass, 'raceType' => 'heat']))
         ->assertOk()
-        ->assertSee('Results');
+        ->assertSee('Scoring');
 });
 
-it('loads the points-payout page with event, class, and race type', function () {
+it('loads the reports page with event, class, and race type', function () {
     $this->actingAs($this->user)
         ->get(route('race-management.points-payout', ['event' => $this->event, 'raceClass' => $this->raceClass, 'raceType' => 'heat']))
         ->assertOk()
-        ->assertSee('Points / Payout');
+        ->assertSee('Reports');
 });
 
 it('redirects guests from race management pages', function () {

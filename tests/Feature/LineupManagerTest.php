@@ -66,7 +66,7 @@ it('renders the lineups page', function () {
             'raceType' => 'heat',
         ]))
         ->assertStatus(200)
-        ->assertSee('Lineups')
+        ->assertSee('Line Ups')
         ->assertSee('Calculate Lineups');
 });
 

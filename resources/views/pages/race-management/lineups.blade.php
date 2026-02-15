@@ -8,7 +8,7 @@ $ctx = new \App\Support\RaceManagementContext(
 ?>
 
 <x-layouts::module
-    title="Lineups"
+    title="Line Ups"
     moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$ctx->sidebarItems()"
     :seasons="$ctx->seasonsForDropdown()"

@@ -12,7 +12,7 @@ $entryCount = \App\Models\Entry::query()
 ?>
 
 <x-layouts::module
-    title="Entries"
+    title="Check Ins"
     moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$ctx->sidebarItems()"
     :seasons="$ctx->seasonsForDropdown()"

@@ -261,7 +261,7 @@ it('loads the setup page with optional class parameter', function () {
         'raceClass' => $this->raceClass,
     ]))
         ->assertOk()
-        ->assertSee('Setup');
+        ->assertSee('Config');
 });
 
 it('redirects setup page to first class when no class provided', function () {

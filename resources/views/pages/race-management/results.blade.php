@@ -27,7 +27,7 @@ $results = [
 ?>
 
 <x-layouts::module
-    title="Results"
+    title="Scoring"
     moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$ctx->sidebarItems()"
     :seasons="$ctx->seasonsForDropdown()"

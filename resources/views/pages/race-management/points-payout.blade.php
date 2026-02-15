@@ -24,7 +24,7 @@ $totalEntries = count($standings);
 ?>
 
 <x-layouts::module
-    title="Points / Payout"
+    title="Reports"
     moduleTitle="RACE MANAGEMENT"
     :sidebarItems="$ctx->sidebarItems()"
     :seasons="$ctx->seasonsForDropdown()"
