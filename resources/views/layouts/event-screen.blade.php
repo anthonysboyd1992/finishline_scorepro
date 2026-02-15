@@ -1,4 +1,4 @@
-@props(['title' => 'Event Screen'])
+@props(['title' => 'Pill Draw Screen'])
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">

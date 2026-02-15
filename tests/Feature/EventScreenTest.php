@@ -16,7 +16,7 @@ beforeEach(function () {
 it('loads the event screen page for authenticated users', function () {
     $this->get(route('event-screen', ['event' => $this->event, 'operatorToken' => $this->operatorToken]))
         ->assertOk()
-        ->assertSee('Event Screen');
+        ->assertSee('Pill Draw Screen');
 });
 
 it('requires authentication to access event screen', function () {

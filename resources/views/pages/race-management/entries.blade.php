@@ -24,6 +24,7 @@ $entryCount = \App\Models\Entry::query()
     :classes="$ctx->classesForDropdown()"
     :currentClass="$ctx->currentClassArray()"
     :entryCount="$entryCount"
+    :showPillDrawScreen="true"
 >
     <livewire:race-management.entry-manager :eventId="$event->id" :raceClassId="$raceClass->id" />
 </x-layouts::module>
