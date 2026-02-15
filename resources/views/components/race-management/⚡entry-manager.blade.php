@@ -361,7 +361,7 @@ new class extends Component
     {
         $mode = 'none';
         $min = 1;
-        $max = 999;
+        $max = 500;
 
         if ($this->eventId && $this->raceClassId) {
             $event = Event::find($this->eventId);
@@ -374,13 +374,13 @@ new class extends Component
                 if ($pivot && $pivot->pill_mode !== null) {
                     $mode = $pivot->pill_mode;
                     $min = $pivot->pill_min ?? 1;
-                    $max = $pivot->pill_max ?? 999;
+                    $max = $pivot->pill_max ?? 500;
                 } else {
                     $defaults = RaceClassDefault::where('race_class_id', $this->raceClassId)->first();
                     if ($defaults && $defaults->pill_mode !== null) {
                         $mode = $defaults->pill_mode;
                         $min = $defaults->pill_min ?? 1;
-                        $max = $defaults->pill_max ?? 999;
+                        $max = $defaults->pill_max ?? 500;
                     }
                 }
             }
@@ -646,11 +646,11 @@ new class extends Component
                 </div>
 
                 {{-- Pill number grid (Alpine-rendered) --}}
-                <div class="flex-1 overflow-y-auto p-4">
-                    <div class="grid gap-2 max-w-5xl mx-auto" :class="gridColsClass">
+                <div class="flex-1 min-h-0 overflow-hidden p-2">
+                    <div class="grid mx-auto" :class="[gridColsClass, gridGapClass]">
                         <template x-for="num in allPills" :key="num">
                             <div
-                                class="relative flex items-center justify-center rounded-lg font-bold transition-all duration-100 select-none"
+                                class="relative flex items-center justify-center rounded font-bold transition-all duration-100 select-none"
                                 :class="[cellSizeClass, pillClass(num)]"
                                 :id="'pill-cell-' + num"
                                 x-text="num"

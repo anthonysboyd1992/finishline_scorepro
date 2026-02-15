@@ -33,18 +33,28 @@ document.addEventListener('alpine:init', () => {
 
         get gridColsClass() {
             const count = this.pillMax - this.pillMin + 1;
-            if (count <= 30) return 'grid-cols-5 sm:grid-cols-6';
-            if (count <= 60) return 'grid-cols-6 sm:grid-cols-8';
-            if (count <= 100) return 'grid-cols-8 sm:grid-cols-10';
-            return 'grid-cols-10 sm:grid-cols-14 md:grid-cols-18 lg:grid-cols-20';
+            if (count <= 30) return 'h-full grid-cols-5 sm:grid-cols-6 auto-rows-fr';
+            if (count <= 60) return 'h-full grid-cols-6 sm:grid-cols-8 auto-rows-fr';
+            if (count <= 100) return 'h-full grid-cols-8 sm:grid-cols-10 auto-rows-fr';
+            if (count <= 250) return 'h-full grid-cols-10 sm:grid-cols-16 md:grid-cols-20 auto-rows-fr';
+            return 'h-full grid-cols-15 sm:grid-cols-20 md:grid-cols-25 auto-rows-fr';
         },
 
         get cellSizeClass() {
             const count = this.pillMax - this.pillMin + 1;
-            if (count <= 30) return 'h-20 text-2xl';
-            if (count <= 60) return 'h-16 text-xl';
-            if (count <= 100) return 'h-14 text-lg';
-            return 'h-11 text-sm';
+            if (count <= 30) return 'text-2xl';
+            if (count <= 60) return 'text-xl';
+            if (count <= 100) return 'text-lg';
+            if (count <= 250) return 'text-xs';
+            return 'text-[10px] leading-none';
+        },
+
+        get gridGapClass() {
+            const count = this.pillMax - this.pillMin + 1;
+            if (count <= 60) return 'gap-2';
+            if (count <= 100) return 'gap-1.5';
+            if (count <= 250) return 'gap-1';
+            return 'gap-px';
         },
 
         pillClass(num) {
@@ -148,18 +158,28 @@ document.addEventListener('alpine:init', () => {
 
         get gridColsClass() {
             const count = this.pillMax - this.pillMin + 1;
-            if (count <= 30) return 'grid-cols-5 sm:grid-cols-6';
-            if (count <= 60) return 'grid-cols-6 sm:grid-cols-8';
-            if (count <= 100) return 'grid-cols-8 sm:grid-cols-10';
-            return 'grid-cols-10 sm:grid-cols-14 md:grid-cols-18 lg:grid-cols-20';
+            if (count <= 30) return 'h-full grid-cols-5 sm:grid-cols-6 auto-rows-fr';
+            if (count <= 60) return 'h-full grid-cols-6 sm:grid-cols-8 auto-rows-fr';
+            if (count <= 100) return 'h-full grid-cols-8 sm:grid-cols-10 auto-rows-fr';
+            if (count <= 250) return 'h-full grid-cols-10 sm:grid-cols-16 md:grid-cols-20 auto-rows-fr';
+            return 'h-full grid-cols-15 sm:grid-cols-20 md:grid-cols-25 auto-rows-fr';
         },
 
         get cellSizeClass() {
             const count = this.pillMax - this.pillMin + 1;
-            if (count <= 30) return 'h-20 text-3xl';
-            if (count <= 60) return 'h-16 text-2xl';
-            if (count <= 100) return 'h-14 text-xl';
-            return 'h-11 text-base';
+            if (count <= 30) return 'text-3xl';
+            if (count <= 60) return 'text-2xl';
+            if (count <= 100) return 'text-xl';
+            if (count <= 250) return 'text-sm';
+            return 'text-[10px] leading-none';
+        },
+
+        get gridGapClass() {
+            const count = this.pillMax - this.pillMin + 1;
+            if (count <= 60) return 'gap-2';
+            if (count <= 100) return 'gap-1.5';
+            if (count <= 250) return 'gap-1';
+            return 'gap-px';
         },
 
         pillClass(num) {

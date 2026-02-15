@@ -73,7 +73,7 @@ it('loads hardcoded defaults when no settings exist', function () {
         'raceClassId' => $this->raceClass->id,
     ])
         ->assertSet('pillMode', 'none')
-        ->assertSet('pillMax', 999)
+        ->assertSet('pillMax', 500)
         ->assertSet('pillMin', 1)
         ->assertSet('transponderMode', 'none')
         ->assertSet('competitorsPerRow', 2);

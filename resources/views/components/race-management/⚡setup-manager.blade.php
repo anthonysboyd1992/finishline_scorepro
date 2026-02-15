@@ -15,7 +15,7 @@ new class extends Component
 
     // Form fields
     public string $pillMode = 'none';
-    public int $pillMax = 999;
+    public int $pillMax = 500;
     public int $pillMin = 1;
     public string $transponderMode = 'none';
     public int $competitorsPerRow = 2;
@@ -59,7 +59,7 @@ new class extends Component
 
         if ($pivot && $pivot->pill_mode !== null) {
             $this->pillMode = $pivot->pill_mode ?? 'none';
-            $this->pillMax = $pivot->pill_max ?? 999;
+            $this->pillMax = $pivot->pill_max ?? 500;
             $this->pillMin = $pivot->pill_min ?? 1;
             $this->transponderMode = $pivot->transponder_mode ?? 'none';
             $this->competitorsPerRow = $pivot->competitors_per_row ?? 2;
@@ -71,7 +71,7 @@ new class extends Component
         $defaults = RaceClassDefault::where('race_class_id', $this->raceClassId)->first();
         if ($defaults) {
             $this->pillMode = $defaults->pill_mode ?? 'none';
-            $this->pillMax = $defaults->pill_max ?? 999;
+            $this->pillMax = $defaults->pill_max ?? 500;
             $this->pillMin = $defaults->pill_min ?? 1;
             $this->transponderMode = $defaults->transponder_mode ?? 'none';
             $this->competitorsPerRow = $defaults->competitors_per_row ?? 2;
@@ -81,7 +81,7 @@ new class extends Component
 
         // Hardcoded defaults
         $this->pillMode = 'none';
-        $this->pillMax = 999;
+        $this->pillMax = 500;
         $this->pillMin = 1;
         $this->transponderMode = 'none';
         $this->competitorsPerRow = 2;
@@ -350,6 +350,7 @@ new class extends Component
                                             type="number"
                                             wire:model="pillMax"
                                             min="1"
+                                            max="500"
                                             class="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-white text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                         />
                                     </div>

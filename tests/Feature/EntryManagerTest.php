@@ -387,7 +387,7 @@ it('returns pill disabled when no settings exist', function () {
     expect($component->get('pillSettings'))->toBe([
         'enabled' => false,
         'min' => 1,
-        'max' => 999,
+        'max' => 500,
         'mode' => 'none',
     ]);
 });

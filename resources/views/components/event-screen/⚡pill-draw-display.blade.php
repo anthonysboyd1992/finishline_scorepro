@@ -75,48 +75,40 @@ new class extends Component
     {{-- Active pill draw display --}}
     <template x-if="driverName || mode !== 'idle'">
         <div class="flex-1 flex flex-col min-h-0">
-            {{-- Top bar: competitor info --}}
-            <div class="shrink-0 px-6 py-5 bg-zinc-800 border-b border-zinc-700 flex items-center justify-center gap-6">
-                <div class="flex items-center justify-center w-16 h-16 bg-blue-600 text-white font-bold text-2xl rounded-lg" x-text="carNumber"></div>
-                <div class="text-center">
-                    <p class="text-white font-bold text-2xl" x-text="driverName"></p>
-                    <p class="text-zinc-400 text-lg" x-text="mode === 'stopped' ? 'Pill Drawn!' : mode === 'dancing' ? 'Drawing...' : 'Ready'"></p>
+            {{-- Top bar: competitor info + draw status --}}
+            <div class="shrink-0 px-6 py-3 bg-zinc-800 border-b border-zinc-700 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white font-bold text-2xl rounded-lg" x-text="carNumber"></div>
+                    <div>
+                        <p class="text-white font-bold text-xl" x-text="driverName"></p>
+                        <p class="text-zinc-400 text-sm" x-text="mode === 'stopped' ? 'Pill Drawn!' : mode === 'dancing' ? 'Drawing...' : 'Ready'"></p>
+                    </div>
                 </div>
-                <template x-if="mode === 'stopped' && assignedPill">
-                    <div class="flex items-center justify-center w-20 h-20 bg-red-600 text-white font-bold text-4xl rounded-xl ring-4 ring-red-500 shadow-lg shadow-red-500/30" x-text="assignedPill"></div>
-                </template>
+                <div class="flex items-center gap-4">
+                    <template x-if="mode === 'idle' && driverName">
+                        <div class="text-zinc-300 font-semibold text-lg">Press Enter to start draw</div>
+                    </template>
+                    <template x-if="mode === 'dancing'">
+                        <div class="text-yellow-400 font-semibold text-lg animate-pulse">Press Enter to end draw</div>
+                    </template>
+                    <template x-if="mode === 'stopped' && assignedPill">
+                        <div class="flex items-center justify-center w-14 h-14 bg-red-600 text-white font-bold text-3xl rounded-xl ring-4 ring-red-500 shadow-lg shadow-red-500/30" x-text="assignedPill"></div>
+                    </template>
+                </div>
             </div>
 
             {{-- Pill number grid --}}
-            <div class="flex-1 overflow-y-auto p-6">
-                <div class="grid gap-2 max-w-6xl mx-auto" :class="gridColsClass">
+            <div class="flex-1 min-h-0 overflow-hidden p-2">
+                <div class="grid mx-auto" :class="[gridColsClass, gridGapClass]">
                     <template x-for="num in allPills" :key="num">
                         <div
-                            class="relative flex items-center justify-center rounded-lg font-bold transition-all duration-100 select-none"
+                            class="relative flex items-center justify-center rounded font-bold transition-all duration-100 select-none"
                             :class="[cellSizeClass, pillClass(num)]"
                             :id="'pill-cell-' + num"
                             x-text="num"
                         ></div>
                     </template>
                 </div>
-            </div>
-
-            {{-- Bottom status bar --}}
-            <div class="shrink-0 flex items-center justify-center px-6 py-4 bg-zinc-800 border-t border-zinc-700">
-                <template x-if="mode === 'idle' && driverName">
-                    <div class="text-zinc-300 font-bold text-xl">Press Enter to start draw</div>
-                </template>
-                <template x-if="mode === 'dancing'">
-                    <div class="text-yellow-400 font-bold text-xl animate-pulse">Press Enter to end draw</div>
-                </template>
-                <template x-if="mode === 'stopped'">
-                    <div class="text-green-400 font-bold text-xl">
-                        Pill <span x-text="assignedPill"></span> assigned!
-                    </div>
-                </template>
-                <template x-if="mode === 'idle' && !driverName">
-                    <div class="text-zinc-500 text-lg">Waiting for next draw...</div>
-                </template>
             </div>
         </div>
     </template>
