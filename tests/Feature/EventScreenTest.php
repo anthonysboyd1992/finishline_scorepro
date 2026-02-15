@@ -110,6 +110,7 @@ it('PillDrawUpdated event broadcasts on private operator channel', function () {
     $event = new PillDrawUpdated(
         eventId: $this->event->id,
         raceClassId: 1,
+        className: '410 Sprint Cars',
         driverName: 'Test, Driver',
         carNumber: '42',
         state: 'dancing',

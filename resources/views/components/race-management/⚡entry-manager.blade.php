@@ -465,9 +465,12 @@ new class extends Component
     private function broadcastPillDraw(string $state, ?Entry $entry, ?int $assignedPill, array $ps): void
     {
         try {
+            $raceClass = $this->raceClassId ? \App\Models\RaceClass::find($this->raceClassId) : null;
+
             event(new PillDrawUpdated(
                 eventId: $this->eventId,
                 raceClassId: $this->raceClassId,
+                className: $raceClass?->name ?? '',
                 driverName: $entry?->driver_name ?? '',
                 carNumber: $entry?->car_number ?? '',
                 state: $state,

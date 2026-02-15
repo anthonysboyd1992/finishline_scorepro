@@ -139,12 +139,13 @@ document.addEventListener('alpine:init', () => {
 
     Alpine.data('eventPillDraw', () => ({
         mode: 'idle',
+        className: '',
         driverName: '',
         carNumber: '',
         assignedPill: null,
         drawnPills: [],
         pillMin: 1,
-        pillMax: 999,
+        pillMax: 500,
         highlightedNumber: null,
         interval: null,
 
@@ -198,12 +199,13 @@ document.addEventListener('alpine:init', () => {
         handleUpdate(detail) {
             const d = detail[0] ?? detail;
             const newMode = d.mode ?? d.state ?? 'idle';
+            this.className = d.className ?? '';
             this.driverName = d.driverName ?? '';
             this.carNumber = d.carNumber ?? '';
             this.assignedPill = d.assignedPill ?? null;
             this.drawnPills = d.drawnPills ?? [];
             this.pillMin = d.pillMin ?? 1;
-            this.pillMax = d.pillMax ?? 999;
+            this.pillMax = d.pillMax ?? 500;
 
             if (newMode === 'dancing' && this.mode !== 'dancing') {
                 this.startDancing();

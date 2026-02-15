@@ -11,12 +11,13 @@ new class extends Component
 
     // State driven by broadcast events
     public string $mode = 'idle'; // idle, dancing, stopped
+    public string $className = '';
     public string $driverName = '';
     public string $carNumber = '';
     public ?int $assignedPill = null;
     public array $drawnPills = [];
     public int $pillMin = 1;
-    public int $pillMax = 999;
+    public int $pillMax = 500;
 
     /**
      * @return array<string, string>
@@ -36,15 +37,17 @@ new class extends Component
     public function handlePillDrawUpdate(array $event): void
     {
         $this->mode = $event['state'] ?? 'idle';
+        $this->className = $event['className'] ?? '';
         $this->driverName = $event['driverName'] ?? '';
         $this->carNumber = $event['carNumber'] ?? '';
         $this->assignedPill = $event['assignedPill'] ?? null;
         $this->drawnPills = $event['drawnPills'] ?? [];
         $this->pillMin = $event['pillMin'] ?? 1;
-        $this->pillMax = $event['pillMax'] ?? 999;
+        $this->pillMax = $event['pillMax'] ?? 500;
 
         $this->dispatch('pill-draw-update', [
             'mode' => $this->mode,
+            'className' => $this->className,
             'driverName' => $this->driverName,
             'carNumber' => $this->carNumber,
             'assignedPill' => $this->assignedPill,
@@ -81,7 +84,11 @@ new class extends Component
                     <div class="flex items-center justify-center w-14 h-14 bg-blue-600 text-white font-bold text-2xl rounded-lg" x-text="carNumber"></div>
                     <div>
                         <p class="text-white font-bold text-xl" x-text="driverName"></p>
-                        <p class="text-zinc-400 text-sm" x-text="mode === 'stopped' ? 'Pill Drawn!' : mode === 'dancing' ? 'Drawing...' : 'Ready'"></p>
+                        <p class="text-zinc-400 text-sm">
+                            <span x-show="className" x-text="className" class="text-zinc-300 font-medium"></span>
+                            <span x-show="className"> &mdash; </span>
+                            <span x-text="mode === 'stopped' ? 'Pill Drawn!' : mode === 'dancing' ? 'Drawing...' : 'Ready'"></span>
+                        </p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">

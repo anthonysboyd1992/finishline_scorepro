@@ -17,6 +17,7 @@ class PillDrawUpdated implements ShouldBroadcastNow
     public function __construct(
         public int $eventId,
         public int $raceClassId,
+        public string $className,
         public string $driverName,
         public string $carNumber,
         public string $state,
